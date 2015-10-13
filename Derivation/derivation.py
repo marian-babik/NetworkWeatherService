@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # 1 stream               22.87s user 3.27s system 4% cpu 9:39.41 total
 # 10 streams             25.15s user 4.63s system 47% cpu 1:02.48 total 7480 requests/second
 from datetime import datetime
@@ -76,6 +78,7 @@ for i in range(nThreads):
 
 for s in usrcs:
     for d in udests:
+        if s==d: continue
         st={
         "query": {
                 "filtered":{
