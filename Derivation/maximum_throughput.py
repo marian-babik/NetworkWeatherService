@@ -97,7 +97,7 @@ def get_all_throughputs():
             sd_dict[s] = d
             sd_dict[d] = s
 
-            if res and res_rev and (!sd_dict[s]) and (!sd_dict[d]):
+            if res and res_rev and (not sd_dict[s]) and (not sd_dict[d]):
                 # Both source-dest and dest-source result dictionaries are
                 # nonempty and the source-destination pairs are not already
                 # in the dictionary
