@@ -14,7 +14,7 @@ def max_throughput(time_a, time_b, mean_packet_loss):
 
 
 num_threads = 1
-lock = threading.lock()
+# lock = threading.Lock()
 queue = Queue.Queue()
 
 nw_index = "network_weather-2015-10-11"
