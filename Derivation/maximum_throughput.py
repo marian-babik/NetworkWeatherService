@@ -119,7 +119,7 @@ def get_all_throughputs():
         res = es.search(index=nw_index, body=st, size=1000)
         res_rev = es.search(index=nw_index, body=st_rev, size=1000)
 
-        if res and res_rev and (not sd_dict[s]) and (not sd_dict[d]):
+        if res and res_rev and (s not in sd_dict) and (d not in sd_dict):
             # Both source-dest and dest-source result dictionaries are
             # nonempty and the source-destination pairs are not already
             # in the dictionary
