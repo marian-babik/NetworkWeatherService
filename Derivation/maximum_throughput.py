@@ -35,6 +35,8 @@ udest = {
 usrcs = []
 udests = []
 es = Elasticsearch([{'host':'cl-analytics.mwt2.org', 'port':9200}])
+print "documents to look into:"
+print es.count(index=nw_index)
 
 res = es.search(index="network_weather-2015-10-11", body=usrc, size=10000)
 for tag in res['aggregations']['unique_vals']['buckets']:
@@ -44,13 +46,17 @@ res = es.search(index="network_weather-2015-10-11", body=udest, size=10000)
 for tag in res['aggregations']['unique_vals']['buckets']:
     udests.append(tag['key'])
 
+print "unique sources: ", len(usrcs)
+print "unique destinations: ", len(udests)
+
 def get_all_throughputs():
     sd_dict = {}
 
     for s in usrcs:
         for d in udests:
             if s == d: continue
-
+            print "source: %s", s
+            print "destination: %s", d
             st={
             "query": {
                     "filtered":{
@@ -134,3 +140,5 @@ def get_all_throughputs():
                 print 'max throughput for source-destination pair (%s - %s):\t %f' % (s, d, tp)
 
 get_all_throughputs()
+
+print "All done."
