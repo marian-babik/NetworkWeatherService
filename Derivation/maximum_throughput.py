@@ -60,8 +60,8 @@ print "unique destinations: ", len(udests)
 # Dictionary of source IP - destination IP pairs
 sd_dict = {}
 # Put the sources and destinations in the queue
-for s in usrcs[:10]:
-    for d in udests[:10]:
+for s in usrcs[:20]:
+    for d in udests[:20]:
         if s == d: continue
         print "source: ", s
         print "destination: ", d
@@ -156,7 +156,7 @@ def get_all_throughputs():
                 tp = max_throughput(avg_sd_delay, avg_ds_delay, avg_pl)
                 print "max throughput for source-destination pair (%s - %s):\t %f" % (s, d, tp)
             else:
-                print "no delay or pl data for source-destination pair (%s -%s)" % (s, d)
+                print "no delay or pl data for source-destination pair (%s - %s)" % (s, d)
 
             sd_dict[s] = d
             sd_dict[d] = s
