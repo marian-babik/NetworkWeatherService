@@ -1,6 +1,6 @@
+#!/usr/bin/env python
 
-# TODO: Keep a dictionary of source-dest pairs => bools to keep track of
-# the source-dest pairs we've already computed maximum throughput for.
+from elasticsearch import Elasticsearch
 
 def max_throughput(time_a, time_b, mean_packet_loss):
     # Expected TCP segment size limit: 1500 octets
@@ -10,10 +10,47 @@ def max_throughput(time_a, time_b, mean_packet_loss):
     return mean_segment_size / (round_trip_time * math.sqrt(mean_packet_loss))
 
 nw_index = "network_weather-2015-10-11"
+usrc = {
+    "size": 0,
+    "aggregations": {
+       "unique_vals": {
+          "terms": {
+             "field": "@message.src",
+             "size":1000
+          }
+       }
+    }
+}
+udest = {
+    "size": 0,
+    "aggregations": {
+       "unique_vals": {
+          "terms": {
+             "field": "@message.dest",
+             "size":1000
+          }
+       }
+    }
+}
+usrcs = []
+udests = []
+es = Elasticsearch([{'host':'cl-analytics.mwt2.org', 'port':9200}])
+
+res = es.search(index="network_weather-2015-10-11", body=usrc, size=10000)
+for tag in res['aggregations']['unique_vals']['buckets']:
+    usrcs.append(tag['key'])
+
+res = es.search(index="network_weather-2015-10-11", body=udest, size=10000)
+for tag in res['aggregations']['unique_vals']['buckets']:
+    udests.append(tag['key'])
 
 def get_all_throughputs():
+    sd_dict = {}
+
     for s in usrcs:
         for d in udests:
+            if s == d: continue
+
             st={
             "query": {
                     "filtered":{
@@ -57,8 +94,14 @@ def get_all_throughputs():
             res = es.search(index=nw_index, body=st, size=1000)
             res_rev = es.search(index=nw_index, body=st_rev, size=1000)
 
-            if res and res_rev:
-                # Both source-dest and dest-source result dictionaries are nonempty
+            sd_dict[s] = d
+            sd_dict[d] = s
+
+            if res and res_rev and (!sd_dict[s]) and (!sd_dict[d]):
+                # Both source-dest and dest-source result dictionaries are
+                # nonempty and the source-destination pairs are not already
+                # in the dictionary
+
                 num_sd_delay = 0
                 tot_sd_delay = 0
                 num_ds_delay = 0
@@ -89,3 +132,5 @@ def get_all_throughputs():
 
                 tp = max_throughput(avg_sd_delay, avg_ds_delay, avg_pl)
                 print 'max throughput for source-destination pair (%s - %s):\t %f' % (s, d, tp)
+
+get_all_throughputs()
