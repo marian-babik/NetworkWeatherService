@@ -148,12 +148,15 @@ def get_all_throughputs():
                     num_ds_delay += 1
                     tot_ds_delay += ds_hit['_source']['@message']['delay_mean']
 
-            avg_sd_delay = tot_sd_delay / num_sd_delay
-            avg_ds_delay = tot_ds_delay / num_ds_delay
-            avg_pl = tot_pl / num_pl
+            if num_sd_delay > 0 and num_ds_delay > 0 and num_pl > 0:
+                avg_sd_delay = tot_sd_delay / num_sd_delay
+                avg_ds_delay = tot_ds_delay / num_ds_delay
+                avg_pl = tot_pl / num_pl
 
-            tp = max_throughput(avg_sd_delay, avg_ds_delay, avg_pl)
-            print 'max throughput for source-destination pair (%s - %s):\t %f' % (s, d, tp)
+                tp = max_throughput(avg_sd_delay, avg_ds_delay, avg_pl)
+                print "max throughput for source-destination pair (%s - %s):\t %f" % (s, d, tp)
+            else:
+                print "no delay or pl data for source-destination pair (%s -%s)" % (s, d)
 
             sd_dict[s] = d
             sd_dict[d] = s
