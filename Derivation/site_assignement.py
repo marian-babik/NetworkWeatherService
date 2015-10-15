@@ -20,14 +20,14 @@ totr=0
 def worker():
     global totr
     while True:
-        st=q.get()
-        res = es.search(index="network_weather-2015-10-11", body=st, size=2000)
+        [st,sS,dS]=q.get()
+        res = es.search(index="network_weather-2015-10-10", body=st, size=2000)
         recs=res['hits']['total']
         lock.acquire()
         totr+=recs
         lock.release()
         for rec in res['hits']['hits']:
-            es.update(index=rec['_index'],doc_type=rec['_type'],id=rec['_id'], body={"doc": {"srcSite": mapping[rec['_source']['@message']['src']],"destSite": mapping[rec['_source']['@message']['dest']] }})
+            es.update(index=rec['_index'],doc_type=rec['_type'],id=rec['_id'], body={"doc": {"srcSite": sS,"destSite": dS }})
         print "records:",recs, "\t remaining:",q.qsize(), "\ttotal rec:",totr
         q.task_done()
 
@@ -39,7 +39,7 @@ print(res.content)
 es = Elasticsearch([{'host':'cl-analytics.mwt2.org', 'port':9200}])
 
 print "documents to look into:"
-print es.count(index="network_weather-2015-10-11")
+print es.count(index="network_weather-2015-10-10")
 
 usrc={
     "size": 0,
@@ -66,11 +66,11 @@ udest={
 usrcs=[]
 udests=[]
 
-res = es.search(index="network_weather-2015-10-11", body=usrc, size=10000)
+res = es.search(index="network_weather-2015-10-10", body=usrc, size=10000)
 for tag in res['aggregations']['unique_vals']['buckets']:
     usrcs.append(tag['key'])
 
-res = es.search(index="network_weather-2015-10-11", body=udest, size=10000)
+res = es.search(index="network_weather-2015-10-10", body=udest, size=10000)
 for tag in res['aggregations']['unique_vals']['buckets']:
     udests.append(tag['key'])
 
@@ -105,7 +105,11 @@ for s in usrcs:
                 }
             }
         }
-        q.put(st)
+        sS=''
+        dS=''
+        if s in mapping: sS=mapping[s]
+        if d in mapping: dS=mapping[d]
+        q.put([st,sS,dS])
 
 
 q.join()
