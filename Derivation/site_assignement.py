@@ -21,13 +21,13 @@ def worker():
     global totr
     while True:
         st=q.get()
-        res = es.search(index="network_weather-2015-10-11", body=st, size=1000)
+        res = es.search(index="network_weather-2015-10-11", body=st, size=2000)
         recs=res['hits']['total']
         lock.acquire()
         totr+=recs
         lock.release()
         for rec in res['hits']['hits']:
-            es.update(index=rec['_index'],doc_type=rec['_type'],id=rec['_id'], body={"doc": {"srcSite": mapping[rec['@message']['src']],"destSite": mapping[rec['@message']['dest']] }})
+            es.update(index=rec['_index'],doc_type=rec['_type'],id=rec['_id'], body={"doc": {"srcSite": mapping[rec['_source']['@message']['src']],"destSite": mapping[rec['_source']['@message']['dest']] }})
         print "records:",recs, "\t remaining:",q.qsize(), "\ttotal rec:",totr
         q.task_done()
 
@@ -47,7 +47,7 @@ usrc={
        "unique_vals": {
           "terms": {
              "field": "@message.src",
-             "size":5000
+             "size":1000
           }
        }
     }
@@ -58,7 +58,7 @@ udest={
        "unique_vals": {
           "terms": {
              "field": "@message.dest",
-             "size":5000
+             "size":1000
           }
        }
     }
@@ -111,3 +111,25 @@ for s in usrcs:
 q.join()
 
 print 'All done.'
+
+
+#
+# st={
+# "query": {
+#         "filtered":{
+#             "query": {
+#                 "match_all": {}
+#             },
+#             "filter":{
+#                 "and": [
+#                     {
+#                         "term":{ "@message.src":"134.79.118.72" }
+#                     },
+#                     {
+#                         "term":{ "@message.dest":"149.165.225.223" }
+#                     }
+#                 ]
+#             }
+#         }
+#     }
+# }
