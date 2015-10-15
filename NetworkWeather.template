@@ -12,21 +12,27 @@ curl -XPOST 'cl-analytics.mwt2.org:9200/_template/network_weather' -d '{
             "_source" : { "enabled" : true },
             "properties" : {
             "@message.src" : { "type" : "string", "index" : "not_analyzed" },
-            "@message.dest" : { "type" : "string", "index" : "not_analyzed" }
+            "@message.dest" : { "type" : "string", "index" : "not_analyzed" },
+            "srcSite" : { "type" : "string", "index" : "not_analyzed" },
+            "destSite" : { "type" : "string", "index" : "not_analyzed" }
             }
         },
         "latency" : {
             "_source" : { "enabled" : true },
             "properties" : {
             "@message.src" : { "type" : "string", "index" : "not_analyzed" },
-            "@message.dest" : { "type" : "string", "index" : "not_analyzed" }
+            "@message.dest" : { "type" : "string", "index" : "not_analyzed" },
+            "srcSite" : { "type" : "string", "index" : "not_analyzed" },
+            "destSite" : { "type" : "string", "index" : "not_analyzed" }
             }
         },
         "throughput" : {
             "_source" : { "enabled" : true },
             "properties" : {
             "@message.src" : { "type" : "string", "index" : "not_analyzed" },
-            "@message.dest" : { "type" : "string", "index" : "not_analyzed" }
+            "@message.dest" : { "type" : "string", "index" : "not_analyzed" },
+            "srcSite" : { "type" : "string", "index" : "not_analyzed" },
+            "destSite" : { "type" : "string", "index" : "not_analyzed" }
             }
         }
     }
