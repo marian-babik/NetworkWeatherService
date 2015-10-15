@@ -13,7 +13,7 @@ import agisFunctions
 
 mapping = agisFunctions.getATLAShosts()
 
-nThreads=1
+nThreads=20
 lock = threading.Lock()
 totr=0
 
