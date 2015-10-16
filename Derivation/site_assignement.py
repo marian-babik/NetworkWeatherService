@@ -13,7 +13,7 @@ import agisFunctions
 
 mapping = agisFunctions.getATLAShosts()
 
-ind="network_weather-2015-10-10"
+ind="network_weather-2015-10-12"
 nThreads=20
 lock = threading.Lock()
 totr=0
