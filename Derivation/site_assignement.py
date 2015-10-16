@@ -13,6 +13,7 @@ import agisFunctions
 
 mapping = agisFunctions.getATLAShosts()
 
+ind="network_weather-2015-10-10"
 nThreads=20
 lock = threading.Lock()
 totr=0
@@ -21,7 +22,7 @@ def worker():
     global totr
     while True:
         [st,sS,dS]=q.get()
-        res = es.search(index="network_weather-2015-10-10", body=st, size=2000)
+        res = es.search(index=ind, body=st, size=2000)
         recs=res['hits']['total']
         lock.acquire()
         totr+=recs
@@ -39,7 +40,7 @@ print(res.content)
 es = Elasticsearch([{'host':'cl-analytics.mwt2.org', 'port':9200}])
 
 print "documents to look into:"
-print es.count(index="network_weather-2015-10-10")
+print es.count(index=ind)
 
 usrc={
     "size": 0,
@@ -66,11 +67,11 @@ udest={
 usrcs=[]
 udests=[]
 
-res = es.search(index="network_weather-2015-10-10", body=usrc, size=10000)
+res = es.search(index=ind, body=usrc, size=10000)
 for tag in res['aggregations']['unique_vals']['buckets']:
     usrcs.append(tag['key'])
 
-res = es.search(index="network_weather-2015-10-10", body=udest, size=10000)
+res = es.search(index=ind, body=udest, size=10000)
 for tag in res['aggregations']['unique_vals']['buckets']:
     udests.append(tag['key'])
 
