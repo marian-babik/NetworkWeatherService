@@ -20,7 +20,7 @@ num_threads = 1
 # lock = threading.Lock()
 queue = Queue.Queue()
 
-nw_index = "network_weather-2015-10-18"
+nw_index = "network_weather-2015-10-17"
 usrc = {
     "size": 0,
     "aggregations": {
