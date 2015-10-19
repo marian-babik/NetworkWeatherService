@@ -63,7 +63,8 @@ public class SiteMapper {
 			String VO="";
 			if (sites.contains(sitename)) 
 				VO="ATLAS";
-			MappingPair<String, String> p=new MappingPair<String,String>(ip,VO);
+			MappingPair<String, String> p=new MappingPair<String,String>(sitename,VO);
+			log.info("mapping host: "+hostname+"\tip: "+ip+"\tSite: "+sitename+"\tVO: "+VO);
 			m.put(ip,p);
 		}
 
