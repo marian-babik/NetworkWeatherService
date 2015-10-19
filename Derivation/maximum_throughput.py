@@ -63,8 +63,8 @@ print "unique destinations: ", len(udests)
 # Dictionary of source IP - destination IP pairs
 sd_dict = {}
 # Put the sources and destinations in the queue
-for s in usrcs[:20]:
-    for d in udests[:20]:
+for s in usrcs[:40]:
+    for d in udests[:40]:
         if s == d: continue
         print "source: ", s
         print "destination: ", d
