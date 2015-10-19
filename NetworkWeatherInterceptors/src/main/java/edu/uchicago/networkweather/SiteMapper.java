@@ -94,7 +94,7 @@ public class SiteMapper {
 		try {
 			return InetAddress.getByName(hostname).getHostAddress();
 		} catch (UnknownHostException e) {
-			e.printStackTrace();
+			log.warn("hostname "+hostname+" unknown.");
 		}
 		return null;
 	}
