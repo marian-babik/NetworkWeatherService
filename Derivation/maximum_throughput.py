@@ -20,7 +20,7 @@ num_threads = 1
 # lock = threading.Lock()
 queue = Queue.Queue()
 
-nw_index = "network_weather-2015-10-11"
+nw_index = "network_weather-2015-10-18"
 usrc = {
     "size": 0,
     "aggregations": {
@@ -49,11 +49,11 @@ es = Elasticsearch([{'host':'cl-analytics.mwt2.org', 'port':9200}])
 print "documents to look into:"
 print es.count(index=nw_index)
 
-res = es.search(index="network_weather-2015-10-11", body=usrc, size=10000)
+res = es.search(index=nw_index, body=usrc, size=10000)
 for tag in res['aggregations']['unique_vals']['buckets']:
     usrcs.append(tag['key'])
 
-res = es.search(index="network_weather-2015-10-11", body=udest, size=10000)
+res = es.search(index=nw_index, body=udest, size=10000)
 for tag in res['aggregations']['unique_vals']['buckets']:
     udests.append(tag['key'])
 
