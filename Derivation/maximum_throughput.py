@@ -136,10 +136,10 @@ def get_all_throughputs():
 
             # Calculate simple averages
             print "res: " + res.__str__()
-            print "res keys: " + res.viewkeys().__str__()
+            print "res keys: " + res.keys().__str__()
             print "res values: " + res.values().__str__()
             print "res_rev: " + res_rev.__str__()
-            print "res_rev keys: " + res_rev.viewkeys().__str__()
+            print "res_rev keys: " + res_rev.keys().__str__()
             print "res_rev values: " + res_rev.values().__str__()
 
             for sd_hit in res['hits']['hits']:
