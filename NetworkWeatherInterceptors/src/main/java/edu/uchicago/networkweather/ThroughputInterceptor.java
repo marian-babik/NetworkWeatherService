@@ -85,7 +85,7 @@ public class ThroughputInterceptor implements Interceptor {
 			newheaders.put("timestamp", ts.toString());
 			
 			String bod = body1 +"\"throughput\":"+ thr.toString() + "}";
-			LOG.info(bod);
+			LOG.debug(bod);
 
 			Event evnt=EventBuilder.withBody(bod.getBytes(charset), newheaders);
 //			LOG.debug(evnt.toString());

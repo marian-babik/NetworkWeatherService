@@ -21,6 +21,8 @@ import com.google.gson.JsonSyntaxException;
 public class PacketLossInterceptor implements Interceptor {
 	private static final Logger LOG = LoggerFactory.getLogger(PacketLossInterceptor.class);
 
+	private static SiteMapper mapper=new SiteMapper();
+	
 	private static JsonParser parser = new JsonParser();
 	final Charset charset = Charset.forName("UTF-8");
 
@@ -50,7 +52,18 @@ public class PacketLossInterceptor implements Interceptor {
 		 
 		String source = jBody.get("meta").getAsJsonObject().get("source").toString();
 		String destination = jBody.get("meta").getAsJsonObject().get("destination").toString();
-		String body1 = "{\"src\":" + source + ",\"dest\":" + destination + ",\"packet_loss\":";
+		String ma = jBody.get("meta").getAsJsonObject().get("measurement_agent").toString();
+		String body1 = "{\"src\":" + source + ",\"dest\":" + destination + ",\"MA\":" + ma + ",";
+		
+		MappingPair<String,String> srcSite=mapper.getSite(source.replace("\"", ""));
+		MappingPair<String,String> destSite=mapper.getSite(destination.replace("\"", ""));
+		
+		if (srcSite!=null){
+			body1+="\"srcSite\":\""+srcSite.getSite()+"\",\"srcVO\":\""+srcSite.getVO()+"\",";
+		}
+		if (destSite!=null){
+			body1+="\"destSite\":\""+destSite.getSite()+"\",\"destVO\":\""+destSite.getVO()+"\",";
+		}	
 		
 		if (! jBody.has("summaries")){
 			LOG.warn("this event has no summaries of any kind.");
@@ -83,7 +96,7 @@ public class PacketLossInterceptor implements Interceptor {
 			Long ts = results.get(ind).getAsJsonArray().get(0).getAsLong() * 1000;
 			newheaders.put("timestamp", ts.toString());
 			Float packetLoss = results.get(ind).getAsJsonArray().get(1).getAsFloat();
-			String bod = body1 + packetLoss.toString() + "}";
+			String bod = body1 +"\"packet_loss\":" + packetLoss.toString() + "}";
 			LOG.debug(bod);
 			Event evnt=EventBuilder.withBody(bod.getBytes(charset), newheaders);
 //			LOG.debug(evnt.toString());

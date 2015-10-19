@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.flume.Context;
 import org.apache.flume.Event;
 import org.apache.flume.event.EventBuilder;
@@ -20,6 +21,8 @@ import com.google.gson.JsonSyntaxException;
 public class OwLatencyInterceptor implements Interceptor {
 	private static final Logger LOG = LoggerFactory.getLogger(OwLatencyInterceptor.class);
 
+	private static SiteMapper mapper=new SiteMapper();
+	
 	private static JsonParser parser = new JsonParser();
 	final Charset charset = Charset.forName("UTF-8");
 
@@ -51,18 +54,29 @@ public class OwLatencyInterceptor implements Interceptor {
 			return null;
 		}
 
-		String source, destination;
+		String source, destination,ma;
 
 		try {
 			source = jBody.get("meta").getAsJsonObject().get("source").toString();
 			destination = jBody.get("meta").getAsJsonObject().get("destination").toString();
+			ma = jBody.get("meta").getAsJsonObject().get("measurement_agent").toString();
 		} catch (Exception e) {
 			LOG.warn("problem in parsing meta info." + e.toString());
 			return null;
 		}
 
-		String body1 = "{\"src\":" + source + ",\"dest\":" + destination + ",\"delay_mean\":";
+		String body1 = "{\"src\":" + source + ",\"dest\":" + destination + ",\"MA\":" + ma + ",";
 
+		MappingPair<String,String> srcSite=mapper.getSite(source.replace("\"", ""));
+		MappingPair<String,String> destSite=mapper.getSite(destination.replace("\"", ""));
+		
+		if (srcSite!=null){
+			body1+="\"srcSite\":\""+srcSite.getSite()+"\",\"srcVO\":\""+srcSite.getVO()+"\",";
+		}
+		if (destSite!=null){
+			body1+="\"destSite\":\""+destSite.getSite()+"\",\"destVO\":\""+destSite.getVO()+"\",";
+		}	
+		
 		Map<String, String> newheaders = new HashMap<String, String>(1);
 
 		if (!jBody.has("summaries")) {
@@ -116,7 +130,7 @@ public class OwLatencyInterceptor implements Interceptor {
 				LOG.debug(stat.toString());
 			}
 
-			String bod = body1 + mean.toString() + ",\"delay_median\":" + median.toString() + ",\"delay_sd\":" + stdev.toString() + "}";
+			String bod = body1 + "\"delay_mean\":" + mean.toString() + ",\"delay_median\":" + median.toString() + ",\"delay_sd\":" + stdev.toString() + "}";
 
 			LOG.debug(bod);
 			Event evnt = EventBuilder.withBody(bod.getBytes(charset), newheaders);
