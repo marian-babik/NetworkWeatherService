@@ -6,10 +6,16 @@ from threading import Thread
 import subprocess, Queue, os, sys, time
 import math
 
+if len(sys.argv) == 2:
+    debug = (1 if sys.argv[1] == "d" else 0)
+else: debug = 0
+
 def max_throughput(time_a, time_b, mean_packet_loss):
     # Expected TCP segment size limit: 1500 octets
     mean_segment_size = 1500
     round_trip_time = time_a + time_b
+    if mean_packet_loss == 0:
+        mean_packet_loss = 1 # Assume no packet loss
     # Formula given by https://en.wikipedia.org/wiki/TCP_tuning#Packet_loss
     return mean_segment_size / (round_trip_time * math.sqrt(mean_packet_loss))
 
@@ -136,13 +142,13 @@ def get_all_throughputs():
             tot_pl = 0
 
             # Calculate simple averages
-            print "res: " + res.__str__()
-            print "res keys: " + res.keys().__str__()
-            print "res values: " + res.values().__str__() + "\n"
-
-            print "res_rev: " + res_rev.__str__()
-            print "res_rev keys: " + res_rev.keys().__str__()
-            print "res_rev values: " + res_rev.values().__str__() + "\n\n"
+            if debug:
+                print "res: " + res.__str__()
+                print "res keys: " + res.keys().__str__()
+                print "res values: " + res.values().__str__() + "\n"
+                print "res_rev: " + res_rev.__str__()
+                print "res_rev keys: " + res_rev.keys().__str__()
+                print "res_rev values: " + res_rev.values().__str__() + "\n\n"
 
             for sd_hit in res['hits']['hits']:
                 if sd_hit['_type'] == 'packet_loss_rate':
@@ -162,15 +168,15 @@ def get_all_throughputs():
 
             if num_sd_delay > 0:
                 avg_sd_delay = tot_sd_delay / num_sd_delay
-                print "average source-dest latency for pair (%s - %s):\t %f" % (s, d, avg_sd_delay)
+                if debug: print "average source-dest latency for pair (%s - %s):\t %f" % (s, d, avg_sd_delay)
 
             if num_ds_delay > 0:
                 avg_ds_delay = tot_ds_delay / num_ds_delay
-                print "average dest-source latency for pair (%s - %s):\t %f" % (s, d, avg_ds_delay)
+                if debug: print "average dest-source latency for pair (%s - %s):\t %f" % (s, d, avg_ds_delay)
 
             if num_pl > 0:
                 avg_pl = tot_pl / num_pl
-                print "average packet loss for pair (%s - %s):\t %f" % (s, d, avg_pl)
+                if debug: print "average packet loss for pair (%s - %s):\t %f" % (s, d, avg_pl)
 
             if num_sd_delay > 0 and num_ds_delay > 0 and num_pl > 0:
                 avg_sd_delay = tot_sd_delay / num_sd_delay
