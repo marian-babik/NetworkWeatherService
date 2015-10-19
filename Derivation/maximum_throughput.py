@@ -4,6 +4,7 @@ from elasticsearch import Elasticsearch
 import threading
 from threading import Thread
 import subprocess, Queue, os, sys, time
+import math
 
 def max_throughput(time_a, time_b, mean_packet_loss):
     # Expected TCP segment size limit: 1500 octets
