@@ -13,6 +13,9 @@ def max_throughput(time_a, time_b, mean_packet_loss):
     return mean_segment_size / (round_trip_time * math.sqrt(mean_packet_loss))
 
 
+import requests
+res = requests.get('http://cl-analytics.mwt2.org:9200')
+
 num_threads = 1
 # lock = threading.Lock()
 queue = Queue.Queue()
@@ -156,7 +159,7 @@ def get_all_throughputs():
                 tp = max_throughput(avg_sd_delay, avg_ds_delay, avg_pl)
                 print "max throughput for source-destination pair (%s - %s):\t %f" % (s, d, tp)
             else:
-                print "no delay or pl data for source-destination pair (%s - %s)" % (s, d)
+                print "no delay or packet loss data for source-destination pair (%s - %s)" % (s, d)
 
             sd_dict[s] = d
             sd_dict[d] = s
