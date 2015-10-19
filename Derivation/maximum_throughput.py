@@ -151,6 +151,18 @@ def get_all_throughputs():
                     num_ds_delay += 1
                     tot_ds_delay += ds_hit['_source']['@message']['delay_mean']
 
+            if num_sd_delay > 0:
+                avg_sd_delay = tot_sd_delay / num_sd_delay
+                print "average source-dest latency for pair (%s - %s):\t %f" % (s, d, avg_sd_delay)
+
+            if num_ds_delay > 0:
+                avg_ds_delay = tot_ds_delay / num_ds_delay
+                print "average dest-source latency for pair (%s - %s):\t %f" % (s, d, avg_ds_delay)
+
+            if num_pl > 0:
+                avg_pl = tot_pl / num_pl
+                print "average packet loss for pair (%s - %s):\t %f" % (s, d, avg_pl)
+
             if num_sd_delay > 0 and num_ds_delay > 0 and num_pl > 0:
                 avg_sd_delay = tot_sd_delay / num_sd_delay
                 avg_ds_delay = tot_ds_delay / num_ds_delay
