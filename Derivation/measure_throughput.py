@@ -90,33 +90,37 @@ for s_name in usrcs[:40]:
         queue.put([st, s_name, d_name])
 
 
+node_table = {}
+
 def get_throughputs():
     while True:
+        global node_table
         st_data = queue.get()
         st = st_data[0]
         s_name = st_data[1]
         d_name = st_data[2]
         res = es.search(index=nw_index, body=st, size=1000)
-        print "source: %s\tdest: %s" % (s_name, d_name)
+        # print "source: %s\tdest: %s" % (s_name, d_name)
 
-        node_table = {}
-        node_table['packet_loss'] = {}
-        node_table['latency'] = {}
-        node_table['throughput'] = {}
+        table_index = "%s <--> %s" % (s_name, d_name)
+        node_table[table_index] = {}
+        node_table[table_index]['packet_loss'] = {}
+        node_table[table_index]['latency'] = {}
+        node_table[table_index]['throughput'] = {}
 
         for hit in res['hits']['hits']:
             src = hit['_source']['@message']['src']
             dst = hit['_source']['@message']['dest']
 
             if hit['_type'] == 'packet_loss_rate':
-                node_table['packet_loss'][src] = dst
-                #print "packet_loss\t\t(%s  -  %s)" % (src, dst)
+                node_table[table_index]['packet_loss'][src] = dst
+                # print "packet_loss\t\t(%s  -  %s)" % (src, dst)
             if hit['_type'] == 'latency':
-                node_table['latency'][src] = dst
-                #print "latency\t\t(%s  -  %s)" % (src, dst)
+                node_table[table_index]['latency'][src] = dst
+                # print "latency\t\t(%s  -  %s)" % (src, dst)
             if hit['_type'] == 'throughput':
-                node_table['throughput'][src] = dst
-                #print "throughput\t\t(%s  -  %s)" % (src, dst)
+                node_table[table_index]['throughput'][src] = dst
+                # print "throughput\t\t(%s  -  %s)" % (src, dst)
 
         print node_table.__str__()
 
