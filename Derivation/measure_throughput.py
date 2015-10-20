@@ -86,8 +86,27 @@ for s_name in usrcs[:40]:
                 }
             }
         }
+        st_rev={
+        "query": {
+                "filtered":{
+                    "query": {
+                        "match_all": {}
+                    },
+                    "filter":{
+                        "and": [
+                            {
+                                "term":{ "@message.srcSite":d_name }
+                            },
+                            {
+                                "term":{ "@message.destSite":s_name }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
 
-        queue.put([st, s_name, d_name])
+        queue.put([st, st_rev, s_name, d_name])
 
 
 node_table = {}
@@ -97,9 +116,11 @@ def get_throughputs():
         global node_table
         st_data = queue.get()
         st = st_data[0]
-        s_name = st_data[1]
-        d_name = st_data[2]
+        st_rev = st_data[1]
+        s_name = st_data[2]
+        d_name = st_data[3]
         res = es.search(index=nw_index, body=st, size=1000)
+        res_rev = es.search(index=nw_index, body=st_rev, size=1000)
         # print "source: %s\tdest: %s" % (s_name, d_name)
 
         table_index = "%s <--> %s" % (s_name, d_name)
@@ -121,6 +142,32 @@ def get_throughputs():
             if hit['_type'] == 'throughput':
                 node_table[table_index]['throughput'][src] = dst
                 # print "throughput\t\t(%s  -  %s)" % (src, dst)
+
+        print "node_table[%s]:" % table_index
+        print "\tpacket_loss: %s" % node_table[table_index]['packet_loss']
+        print "\tlatency: %s" % node_table[table_index]['latency']
+        print "\tthroughput: %s" % node_table[table_index]['throughput']
+
+        table_index = "%s <--> %s" % (d_name, s_name)
+        node_table[table_index] = {}
+        node_table[table_index]['packet_loss'] = {}
+        node_table[table_index]['latency'] = {}
+        node_table[table_index]['throughput'] = {}
+
+        for hit in res_rev['hits']['hits']:
+            src = hit['_source']['@message']['src']
+            dst = hit['_source']['@message']['dest']
+
+            if hit['_type'] == 'packet_loss_rate':
+                node_table[table_index]['packet_loss'][src] = dst
+                # print "packet_loss\t\t(%s  -  %s)" % (src, dst)
+            if hit['_type'] == 'latency':
+                node_table[table_index]['latency'][src] = dst
+                # print "latency\t\t(%s  -  %s)" % (src, dst)
+            if hit['_type'] == 'throughput':
+                node_table[table_index]['throughput'][src] = dst
+                # print "throughput\t\t(%s  -  %s)" % (src, dst)
+
 
         print "node_table[%s]:" % table_index
         print "\tpacket_loss: %s" % node_table[table_index]['packet_loss']
