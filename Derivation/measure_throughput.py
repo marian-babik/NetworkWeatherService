@@ -94,10 +94,16 @@ def get_throughputs():
         st = st_data[0]
         s = st_data[1]
         d = st_data[2]
-
         res = es.search(index=nw_index, body=st, size=1000)
+        print "source: %s\tdest: %s" % (s, d)
 
-        print res
+        for hit in res['hits']['hits']:
+            if hit['_type'] == 'packet_loss_rate':
+                print "packet_loss"
+            if hit['_type'] == 'latency':
+                print "latency"
+            if hit['_type'] == 'throughput':
+                print "throughput"
 
 
 for i in range(num_threads):
