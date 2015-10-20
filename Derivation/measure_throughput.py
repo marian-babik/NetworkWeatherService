@@ -48,12 +48,12 @@ print es.count(index=nw_index)
 
 res = es.search(index=nw_index, body=usrc, size=10000)
 for tag in res['aggregations']['unique_vals']['buckets']:
-    if tag['key'] == "WT2" or tag['key'] == "BNL-ATLAS":
+    if tag['key'] == "WT2":# or tag['key'] == "BNL-ATLAS":
         usrcs.append(tag['key'])
 
 res = es.search(index=nw_index, body=udest, size=10000)
 for tag in res['aggregations']['unique_vals']['buckets']:
-    if tag['key'] == "WT2" or tag['key'] == "BNL-ATLAS":
+    if tag['key'] == "BNL-ATLAS":# or tag['key'] == "WT2
         udests.append(tag['key'])
 
 print "unique sources: ", len(usrcs)
@@ -74,7 +74,7 @@ for s_name in usrcs[:40]:
                         "match_all": {}
                     },
                     "filter":{
-                        "or": [
+                        "and": [
                             {
                                 "term":{ "@message.srcSite":s_name }
                             },
