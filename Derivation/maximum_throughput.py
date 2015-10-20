@@ -118,7 +118,7 @@ for s in usrcs[:40]:
         queue.put([st, st_rev, s, d])
 
 
-def get_all_throughputs():
+def predict_all_throughputs():
     while True:
         st_data = queue.get()
         st = st_data[0]
@@ -141,7 +141,7 @@ def get_all_throughputs():
             num_pl = 0
             tot_pl = 0
 
-            # Calculate simple averages
+            # Print debug info
             if debug:
                 print "res: " + res.__str__()
                 print "res keys: " + res.keys().__str__()
@@ -150,6 +150,7 @@ def get_all_throughputs():
                 print "res_rev keys: " + res_rev.keys().__str__()
                 print "res_rev values: " + res_rev.values().__str__() + "\n\n"
 
+            # Calculate simple averages
             for sd_hit in res['hits']['hits']:
                 if sd_hit['_type'] == 'packet_loss_rate':
                     num_pl += 1
@@ -184,7 +185,8 @@ def get_all_throughputs():
                 avg_pl = tot_pl / num_pl
 
                 tp = max_throughput(avg_sd_delay, avg_ds_delay, avg_pl)
-                print "max throughput for source-destination pair (%s - %s):\t %f" % (s, d, tp)
+                print "max throughput for (%s - %s):\t %f" % (s, d, tp)
+                print "\t(actual throughput = __)"
             else:
                 print "no delay or packet loss data for source-destination pair (%s - %s)" % (s, d)
 
@@ -193,7 +195,7 @@ def get_all_throughputs():
             queue.task_done()
 
 for i in range(num_threads):
-    thread = Thread(target = get_all_throughputs)
+    thread = Thread(target = predict_all_throughputs)
     thread.daemon = True
     thread.start()
 
