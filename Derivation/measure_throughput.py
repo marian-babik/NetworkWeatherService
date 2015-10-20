@@ -10,6 +10,15 @@ if len(sys.argv) == 2:
     debug = (1 if sys.argv[1] == "d" else 0)
 else: debug = 0
 
+def max_throughput(time_a, time_b, mean_packet_loss):
+    # Expected TCP segment size limit: 1500 octets
+    mean_segment_size = 1500
+    round_trip_time = time_a + time_b
+    if mean_packet_loss == 0:
+        mean_packet_loss = 1 # Assume no packet loss
+    # Formula given by https://en.wikipedia.org/wiki/TCP_tuning#Packet_loss
+    return mean_segment_size / (round_trip_time * math.sqrt(mean_packet_loss))
+
 import requests
 res = requests.get('http://cl-analytics.mwt2.org:9200')
 
@@ -129,18 +138,34 @@ def get_throughputs():
         node_table[table_index]['latency'] = {}
         node_table[table_index]['throughput'] = {}
 
+        num_sd_delay = 0
+        num_ds_delay = 0
+        num_pl = 0
+        num_tp = 0
+
+        tot_sd_delay = 0
+        tot_ds_delay = 0
+        tot_pl = 0
+        tot_tp = 0
+
         for hit in res['hits']['hits']:
             src = hit['_source']['@message']['src']
             dst = hit['_source']['@message']['dest']
 
             if hit['_type'] == 'packet_loss_rate':
                 node_table[table_index]['packet_loss'][src] = dst
+                num_pl += 1
+                tot_pl += hit['_source']['@message']['packet_loss']
                 # print "packet_loss\t\t(%s  -  %s)" % (src, dst)
             if hit['_type'] == 'latency':
                 node_table[table_index]['latency'][src] = dst
+                num_sd_delay += 1
+                tot_sd_delay += hit['_source']['@message']['delay_mean']
                 # print "latency\t\t(%s  -  %s)" % (src, dst)
             if hit['_type'] == 'throughput':
                 node_table[table_index]['throughput'][src] = dst
+                num_tp += 1
+                tot_tp += hit['_source']['@message']['throughput']
                 # print "throughput\t\t(%s  -  %s)" % (src, dst)
 
         print "node_table[%s]:" % table_index
@@ -161,14 +186,28 @@ def get_throughputs():
 
             if hit['_type'] == 'packet_loss_rate':
                 node_table[table_index]['packet_loss'][src] = dst
+                num_pl += 1
+                tot_pl += hit['_source']['@message']['packet_loss']
                 # print "packet_loss\t\t(%s  -  %s)" % (src, dst)
             if hit['_type'] == 'latency':
                 node_table[table_index]['latency'][src] = dst
+                num_ds_delay += 1
+                tot_ds_delay += hit['_source']['@message']['delay_mean']
                 # print "latency\t\t(%s  -  %s)" % (src, dst)
             if hit['_type'] == 'throughput':
                 node_table[table_index]['throughput'][src] = dst
+                num_tp += 1
+                tot_tp += hit['_source']['@message']['throughput']
                 # print "throughput\t\t(%s  -  %s)" % (src, dst)
 
+        # NOTE: Uses the same code we use in maximum_throughput.py
+        if num_sd_delay > 0: avg_sd_delay = tot_sd_delay / num_sd_delay
+        if num_ds_delay > 0: avg_ds_delay = tot_ds_delay / num_ds_delay
+        if num_pl > 0: avg_pl = tot_pl / num_pl
+        if num_tp > 0: avg_tp = tot_tp / num_tp
+
+        if num_sd_delay > 0 and num_ds_delay > 0 and num_pl > 0:
+            pre_tp = max_throughput(avg_sd_delay, avg_ds_delay, avg_pl)
 
         print "node_table[%s]:" % table_index
         print "\tpacket_loss: %s" % node_table[table_index]['packet_loss']
