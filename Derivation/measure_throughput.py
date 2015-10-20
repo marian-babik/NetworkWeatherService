@@ -201,10 +201,10 @@ def get_throughputs():
                 # print "throughput\t\t(%s  -  %s)" % (src, dst)
 
         # NOTE: Uses the same code we use in maximum_throughput.py
-        avg_sd_delay = 0
-        avg_ds_delay = 0
-        avg_pl = 0
-        avg_tp = 0
+        # avg_sd_delay = 0
+        # avg_ds_delay = 0
+        # avg_pl = 0
+        # avg_tp = 0
 
         if num_sd_delay > 0: avg_sd_delay = tot_sd_delay / num_sd_delay
         if num_ds_delay > 0: avg_ds_delay = tot_ds_delay / num_ds_delay
@@ -212,13 +212,18 @@ def get_throughputs():
         if num_tp > 0: avg_tp = tot_tp / num_tp
 
         print "node_table[%s]:" % table_index
-        print "\tpacket_loss: %s\t%f" % (node_table[table_index]['packet_loss'], avg_pl)
-        print "\tlatency: %s\t%f" % (node_table[table_index]['latency'], avg_sd_delay + avg_ds_delay)
-        print "\tthroughput: %s\t%f" % (node_table[table_index]['throughput'], avg_tp)
+        print "\tpacket_loss: %s" % node_table[table_index]['packet_loss']
+        print "\tlatency: %s" % node_table[table_index]['latency']
+        print "\tthroughput: %s" % node_table[table_index]['throughput']
+
+        print "RESULTS[%s]:" % table_index
+        if num_pl > 0: print "packet_loss: %f" avg_pl
+        if num_sd_delay > 0 and num_ds_delay > 0: print "latency: %f" % avg_sd_delay + avg_ds_delay
+        if num_tp > 0: print "throughput: %f" % avg_tp
 
         if num_sd_delay > 0 and num_ds_delay > 0 and num_pl > 0:
             pre_tp = max_throughput(avg_sd_delay, avg_ds_delay, avg_pl)
-            print "\tpredirected throughput: %f" % pre_tp
+            print "predirected throughput: %f" % pre_tp
 
 
 for i in range(num_threads):
