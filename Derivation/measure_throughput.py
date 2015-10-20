@@ -218,7 +218,7 @@ def get_throughputs():
 
         print "RESULTS[%s]:" % table_index
         if num_pl > 0: print "packet_loss: %f" % avg_pl
-        if num_sd_delay > 0 and num_ds_delay > 0: print "latency: %f" % avg_sd_delay + avg_ds_delay
+        if num_sd_delay > 0 and num_ds_delay > 0: print "latency: %f" % (avg_sd_delay + avg_ds_delay)
         if num_tp > 0: print "throughput: %f" % avg_tp
 
         if num_sd_delay > 0 and num_ds_delay > 0 and num_pl > 0:
