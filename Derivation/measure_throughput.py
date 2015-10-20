@@ -48,11 +48,13 @@ print es.count(index=nw_index)
 
 res = es.search(index=nw_index, body=usrc, size=10000)
 for tag in res['aggregations']['unique_vals']['buckets']:
-    usrcs.append(tag['key'])
+    if tag['key'] == "WT2" or tag['key'] == "BNL-ATLAS":
+        usrcs.append(tag['key'])
 
 res = es.search(index=nw_index, body=udest, size=10000)
 for tag in res['aggregations']['unique_vals']['buckets']:
-    udests.append(tag['key'])
+    if tag['key'] == "WT2" or tag['key'] == "BNL-ATLAS":
+        udests.append(tag['key'])
 
 print "unique sources: ", len(usrcs)
 print "unique destinations: ", len(udests)
@@ -60,11 +62,11 @@ print "unique destinations: ", len(udests)
 # Dictionary of source IP - destination IP pairs
 sd_dict = {}
 # Put the sources and destinations in the queue
-for s in usrcs[:40]:
-    for d in udests[:40]:
-        if s == d: continue
-        print "source: ", s
-        print "destination: ", d
+for s_name in usrcs[:40]:
+    for d_name in udests[:40]:
+        if s_name == d_name: continue
+        print "source: ", s_name
+        print "destination: ", d_name
         st={
         "query": {
                 "filtered":{
@@ -74,10 +76,10 @@ for s in usrcs[:40]:
                     "filter":{
                         "or": [
                             {
-                                "term":{ "@message.srcSite":s }
+                                "term":{ "@message.srcSite":s_name }
                             },
                             {
-                                "term":{ "@message.destSite":d }
+                                "term":{ "@message.destSite":d_name }
                             }
                         ]
                     }
@@ -85,17 +87,19 @@ for s in usrcs[:40]:
             }
         }
 
-        queue.put([st, s, d])
+        queue.put([st, s_name, d_name])
 
 
 def get_throughputs():
     while True:
         st_data = queue.get()
         st = st_data[0]
-        s = st_data[1]
-        d = st_data[2]
+        s_name = st_data[1]
+        d_name = st_data[2]
         res = es.search(index=nw_index, body=st, size=1000)
-        print "source: %s\tdest: %s" % (s, d)
+        print "source: %s\tdest: %s" % (s_name, d_name)
+
+        # Print the IP addresses of these as well
 
         for hit in res['hits']['hits']:
             if hit['_type'] == 'packet_loss_rate':
