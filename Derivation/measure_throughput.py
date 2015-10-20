@@ -215,6 +215,7 @@ def get_throughputs():
         print "\tpacket_loss: %s" % node_table[table_index]['packet_loss']
         print "\tlatency: %s" % node_table[table_index]['latency']
         print "\tthroughput: %s" % node_table[table_index]['throughput']
+        print "\n"
 
         print "RESULTS[%s]:" % table_index
         if num_pl > 0: print "packet_loss: %f" % avg_pl
