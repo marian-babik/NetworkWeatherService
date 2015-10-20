@@ -106,11 +106,11 @@ def get_throughputs():
             dst = hit['_source']['@message']['dest']
 
             if hit['_type'] == 'packet_loss_rate':
-                print "packet_loss (%s-%s)" % (src, dst)
+                print "packet_loss\t\t(%s  -  %s)" % (src, dst)
             if hit['_type'] == 'latency':
-                print "latency (%s-%s)" % (src, dst)
+                print "latency\t\t(%s  -  %s)" % (src, dst)
             if hit['_type'] == 'throughput':
-                print "throughput (%s-%s)" % (src, dst)
+                print "throughput\t\t(%s  -  %s)" % (src, dst)
 
 
 for i in range(num_threads):
