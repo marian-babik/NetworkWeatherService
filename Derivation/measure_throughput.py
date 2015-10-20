@@ -43,8 +43,8 @@ udest = {
 usrcs = []
 udests = []
 es = Elasticsearch([{'host':'cl-analytics.mwt2.org', 'port':9200}])
-print "documents to look into:"
-print es.count(index=nw_index)
+# print "documents to look into:"
+# print es.count(index=nw_index)
 
 res = es.search(index=nw_index, body=usrc, size=10000)
 for tag in res['aggregations']['unique_vals']['buckets']:
@@ -56,8 +56,8 @@ for tag in res['aggregations']['unique_vals']['buckets']:
     if tag['key'] == "BNL-ATLAS":# or tag['key'] == "WT2
         udests.append(tag['key'])
 
-print "unique sources: ", len(usrcs)
-print "unique destinations: ", len(udests)
+# print "unique sources: ", len(usrcs)
+# print "unique destinations: ", len(udests)
 
 # Dictionary of source IP - destination IP pairs
 sd_dict = {}
@@ -65,8 +65,8 @@ sd_dict = {}
 for s_name in usrcs[:40]:
     for d_name in udests[:40]:
         if s_name == d_name: continue
-        print "source: ", s_name
-        print "destination: ", d_name
+        # print "source: ", s_name
+        # print "destination: ", d_name
         st={
         "query": {
                 "filtered":{
@@ -122,7 +122,11 @@ def get_throughputs():
                 node_table[table_index]['throughput'][src] = dst
                 # print "throughput\t\t(%s  -  %s)" % (src, dst)
 
-        print node_table.__str__()
+        print "node_table[%s]:" % table_index
+        print "\tpacket_loss: %s" % node_table[table_index]['packet_loss']
+        print "\tlatency: %s" % node_table[table_index]['latency']
+        print "\tthroughput: %s" % node_table[table_index]['throughput']
+        # print node_table.__str__()
 
 
 for i in range(num_threads):
