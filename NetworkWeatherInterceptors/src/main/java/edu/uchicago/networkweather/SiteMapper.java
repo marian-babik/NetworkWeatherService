@@ -94,8 +94,11 @@ public class SiteMapper {
 					JsonArray addresses = hosts.get(h).getAsJsonObject().get("addresses").getAsJsonArray();
 					for (int a = 0; a < addresses.size(); ++a){
 						String address = addresses.get(a).getAsString();
-						throughputHosts.add(address);
-						log.info("throughput production host:" + address);
+						String aip=GetIP(address);
+						if (aip!=null){
+							throughputHosts.add(aip);
+							log.info("throughput production host: " + address + " IP: "+aip);
+						}
 					}
 				}
 			}
@@ -117,8 +120,11 @@ public class SiteMapper {
 					JsonArray addresses = hosts.get(h).getAsJsonObject().get("addresses").getAsJsonArray();
 					for (int a = 0; a < addresses.size(); ++a){
 						String address = addresses.get(a).getAsString();
-						latencyHosts.add(address);
-						log.info("latency production host:" + address);
+						String aip=GetIP(address);
+						if (aip!=null){
+							latencyHosts.add(aip);
+							log.info("latency production host: " + address + " IP: "+aip);
+						}
 					}
 				}
 			}
@@ -150,8 +156,6 @@ public class SiteMapper {
 	}
 
 	private String GetIP(String hostname) {
-		if (new Date().getTime() - lastReload.getTime() > 12 * 3600 * 1000)
-			reload();
 		try {
 			return InetAddress.getByName(hostname).getHostAddress();
 		} catch (UnknownHostException e) {
@@ -161,6 +165,8 @@ public class SiteMapper {
 	}
 
 	public MappingPair<String,String> getSite(String ip){
+		if (new Date().getTime() - lastReload.getTime() > 12 * 3600 * 1000)
+			reload();
 		if (m.containsKey(ip)) return m.get(ip);
 		return null;
 	}
