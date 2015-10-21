@@ -34,6 +34,7 @@ public class SiteMapper {
 	private Map<String, MappingPair<String,String>> m = new HashMap<String, MappingPair<String,String>>();
 
 	SiteMapper() {
+		System.setProperty("jsse.enableSNIExtension", "false");
 		reload();
 	}
 
@@ -78,9 +79,13 @@ public class SiteMapper {
 		}
 
 		// loading production throughput hosts
-		throughputHosts.clear();
 		theURL = "https://myosg.grid.iu.edu/psmesh/json/name/wlcg-all";
-		JsonArray lH = getJsonFromUrl(theURL).getAsJsonObject().get("organizations").getAsJsonArray();
+		JsonElement t=getJsonFromUrl(theURL);
+		if (t == null){
+			log.error("did not load perfosonar throughput host names. Skipping this time.");
+		}
+		JsonArray lH = t.getAsJsonObject().get("organizations").getAsJsonArray();
+		throughputHosts.clear();
 		for (int i = 0; i < lH.size(); ++i) {
 			JsonArray sites = lH.get(i).getAsJsonObject().get("sites").getAsJsonArray();
 			for (int s = 0; s < sites.size(); ++s){
@@ -97,9 +102,13 @@ public class SiteMapper {
 		}
 		
 		// loading production latency hosts
-		latencyHosts.clear();
 		theURL = "https://myosg.grid.iu.edu/psmesh/json/name/wlcg-latency-all";
-		JsonArray tH = getJsonFromUrl(theURL).getAsJsonObject().get("organizations").getAsJsonArray();
+		t=getJsonFromUrl(theURL);
+		if (t == null){
+			log.error("did not load perfosonar latency host names. Skipping this time.");
+		}
+		JsonArray tH = t.getAsJsonObject().get("organizations").getAsJsonArray();
+		latencyHosts.clear();
 		for (int i = 0; i < tH.size(); ++i) {
 			JsonArray sites = tH.get(i).getAsJsonObject().get("sites").getAsJsonArray();
 			for (int s = 0; s < sites.size(); ++s){
