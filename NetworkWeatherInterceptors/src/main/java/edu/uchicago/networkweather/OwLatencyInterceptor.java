@@ -57,18 +57,18 @@ public class OwLatencyInterceptor implements Interceptor {
 		String source, destination,ma;
 
 		try {
-			source = jBody.get("meta").getAsJsonObject().get("source").toString();
-			destination = jBody.get("meta").getAsJsonObject().get("destination").toString();
+			source = jBody.get("meta").getAsJsonObject().get("source").toString().replace("\"", "");
+			destination = jBody.get("meta").getAsJsonObject().get("destination").toString().replace("\"", "");
 			ma = jBody.get("meta").getAsJsonObject().get("measurement_agent").toString();
 		} catch (Exception e) {
 			LOG.warn("problem in parsing meta info." + e.toString());
 			return null;
 		}
 
-		String body1 = "{\"src\":" + source + ",\"dest\":" + destination + ",\"MA\":" + ma + ",";
+		String body1 = "{\"src\":\"" + source + "\",\"dest\":\"" + destination + "\",\"MA\":" + ma + ",";
 
-		MappingPair<String,String> srcSite=mapper.getSite(source.replace("\"", ""));
-		MappingPair<String,String> destSite=mapper.getSite(destination.replace("\"", ""));
+		MappingPair<String,String> srcSite=mapper.getSite(source);
+		MappingPair<String,String> destSite=mapper.getSite(destination);
 		
 		if (srcSite!=null){
 			body1+="\"srcSite\":\""+srcSite.getSite()+"\",\"srcVO\":\""+srcSite.getVO()+"\",";
@@ -84,6 +84,11 @@ public class OwLatencyInterceptor implements Interceptor {
 			return null;
 		}
 
+
+		body1+="\"srcProduction\":"+mapper.getProductionLatency(source)+",";
+		body1+="\"destProduction\":"+mapper.getProductionLatency(destination)+",";
+		
+		
 		JsonArray summaries = jBody.get("summaries").getAsJsonArray();
 
 		JsonArray results = null;

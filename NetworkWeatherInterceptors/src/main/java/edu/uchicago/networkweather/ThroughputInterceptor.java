@@ -52,16 +52,16 @@ public class ThroughputInterceptor implements Interceptor {
 		}
 
 		 
-		String source = jBody.get("meta").getAsJsonObject().get("source").toString();
-		String destination = jBody.get("meta").getAsJsonObject().get("destination").toString();
+		String source = jBody.get("meta").getAsJsonObject().get("source").toString().replace("\"", "");
+		String destination = jBody.get("meta").getAsJsonObject().get("destination").toString().replace("\"", "");
 		String ma = jBody.get("meta").getAsJsonObject().get("measurement_agent").toString();
 		String time_duration = jBody.get("meta").getAsJsonObject().get("time_duration").toString().replace("\"", "");
 		Float td= Float.parseFloat(time_duration);
 		
-		String body1 = "{\"src\":" + source + ",\"dest\":" + destination + ",\"MA\":" + ma + ",";
+		String body1 = "{\"src\":\"" + source + "\",\"dest\":\"" + destination + "\",\"MA\":" + ma + ",";
 		
-		MappingPair<String,String> srcSite=mapper.getSite(source.replace("\"", ""));
-		MappingPair<String,String> destSite=mapper.getSite(destination.replace("\"", ""));
+		MappingPair<String,String> srcSite=mapper.getSite(source);
+		MappingPair<String,String> destSite=mapper.getSite(destination);
 		
 		if (srcSite!=null){
 			body1+="\"srcSite\":\""+srcSite.getSite()+"\",\"srcVO\":\""+srcSite.getVO()+"\",";
@@ -69,6 +69,10 @@ public class ThroughputInterceptor implements Interceptor {
 		if (destSite!=null){
 			body1+="\"destSite\":\""+destSite.getSite()+"\",\"destVO\":\""+destSite.getVO()+"\",";
 		}		
+
+		body1+="\"srcProduction\":"+mapper.getProductionThroughput(source)+",";
+		body1+="\"destProduction\":"+mapper.getProductionThroughput(destination)+",";
+		
 		
 		Map<String, String> newheaders = new HashMap<String, String>(1);
 		

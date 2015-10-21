@@ -50,13 +50,13 @@ public class PacketLossInterceptor implements Interceptor {
 		}
 
 		 
-		String source = jBody.get("meta").getAsJsonObject().get("source").toString();
-		String destination = jBody.get("meta").getAsJsonObject().get("destination").toString();
+		String source = jBody.get("meta").getAsJsonObject().get("source").toString().replace("\"", "");
+		String destination = jBody.get("meta").getAsJsonObject().get("destination").toString().replace("\"", "");
 		String ma = jBody.get("meta").getAsJsonObject().get("measurement_agent").toString();
-		String body1 = "{\"src\":" + source + ",\"dest\":" + destination + ",\"MA\":" + ma + ",";
+		String body1 = "{\"src\":\"" + source + "\",\"dest\":\"" + destination + "\",\"MA\":" + ma + ",";
 		
-		MappingPair<String,String> srcSite=mapper.getSite(source.replace("\"", ""));
-		MappingPair<String,String> destSite=mapper.getSite(destination.replace("\"", ""));
+		MappingPair<String,String> srcSite=mapper.getSite(source);
+		MappingPair<String,String> destSite=mapper.getSite(destination);
 		
 		if (srcSite!=null){
 			body1+="\"srcSite\":\""+srcSite.getSite()+"\",\"srcVO\":\""+srcSite.getVO()+"\",";
@@ -69,6 +69,11 @@ public class PacketLossInterceptor implements Interceptor {
 			LOG.warn("this event has no summaries of any kind.");
 			return null;
 		}
+		
+
+		body1+="\"srcProduction\":"+mapper.getProductionLatency(source)+",";
+		body1+="\"destProduction\":"+mapper.getProductionLatency(destination)+",";
+		
 		
 		JsonArray summaries = jBody.get("summaries").getAsJsonArray();
 		
