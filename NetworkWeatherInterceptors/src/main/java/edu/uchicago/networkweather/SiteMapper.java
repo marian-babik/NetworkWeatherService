@@ -95,7 +95,7 @@ public class SiteMapper {
 					for (int a = 0; a < addresses.size(); ++a){
 						String address = addresses.get(a).getAsString();
 						throughputHosts.add(address);
-						log.info("throughput production host:", address);
+						log.info("throughput production host:" + address);
 					}
 				}
 			}
@@ -118,7 +118,7 @@ public class SiteMapper {
 					for (int a = 0; a < addresses.size(); ++a){
 						String address = addresses.get(a).getAsString();
 						latencyHosts.add(address);
-						log.info("latency production host:", address);
+						log.info("latency production host:" + address);
 					}
 				}
 			}
