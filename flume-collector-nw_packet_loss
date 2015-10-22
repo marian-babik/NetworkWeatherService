@@ -12,7 +12,7 @@
  
 title="packet_loss"
 prog="flume-ng"
-args="agent -c flume -f /usr/local/flume/NetworkWeatherCollector.properties -n NetworkWeather1 -C '/usr/local/flume' "
+args="agent -c flume -f /usr/local/flume/NetworkWeatherCollector.properties -n NetworkWeather1 -C '/usr/local/flume'  -Xms64m -Xmx256m  "
 prefix="/data/flume/apache-flume-1.6.0-bin/"
 exec_prefix="${prefix}"
 prog_bin="${exec_prefix}/bin/${prog}"
