@@ -241,6 +241,7 @@ def get_throughputs():
             if num_tp > 0:
                 print "ratio of actual to predicted: %f" % (avg_tp / pre_tp)
                 print "Done with %s" % nw_index
+                sys.stdout.flush()
                 os._exit(1)
 
 
