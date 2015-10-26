@@ -240,8 +240,7 @@ def get_throughputs():
             print "predirected throughput: %f" % pre_tp
             if num_tp > 0:
                 print "ratio of actual to predicted: %f" % (avg_tp / pre_tp)
-                queue.join()
-                print "Done"
+                return
 
 
 for i in range(num_threads):
