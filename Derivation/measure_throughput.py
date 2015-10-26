@@ -26,6 +26,13 @@ num_threads = 1
 # lock = threading.Lock()
 queue = Queue.Queue()
 
+nw_indices = []
+i = 19
+while i < 26:
+    nw_indices += ("network_weather-2015-10-%d" % i)
+
+print str(nw_indices)
+
 nw_index = "network_weather-2015-10-19"
 usrc = {
     "size": 0,
@@ -225,6 +232,8 @@ def get_throughputs():
         if num_sd_delay > 0 and num_ds_delay > 0 and num_pl > 0:
             pre_tp = max_throughput(avg_sd_delay, avg_ds_delay, avg_pl)
             print "predirected throughput: %f" % pre_tp
+            if num_tp > 0:
+                print "ratio of actual to predicted: %f" % (avg_tp / pre_tp)
 
 
 for i in range(num_threads):
