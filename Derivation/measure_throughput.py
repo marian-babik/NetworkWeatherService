@@ -6,9 +6,14 @@ from threading import Thread
 import subprocess, Queue, os, sys, time
 import math
 
+debug = 0
 if len(sys.argv) == 2:
-    debug = (1 if sys.argv[1] == "d" else 0)
-else: debug = 0
+    nw_index = "network_weather-2015-10-%d" % int(sys.argv[1])
+else:
+    nw_index = "network_weather-2015-10-19"
+# if len(sys.argv) == 2:
+#     debug = (1 if sys.argv[1] == "d" else 0)
+# else: debug = 0
 
 def max_throughput(time_a, time_b, mean_packet_loss):
     # Expected TCP segment size limit: 1500 octets
@@ -26,15 +31,15 @@ num_threads = 1
 # lock = threading.Lock()
 queue = Queue.Queue()
 
-nw_indices = []
-i = 19
-while i < 26:
-    nw_indices.append("network_weather-2015-10-%d" % i)
-    i += 1
+# nw_indices = []
+# i = 19
+# while i < 26:
+#     nw_indices.append("network_weather-2015-10-%d" % i)
+#     i += 1
 
-print nw_indices
+# print nw_indices
 
-nw_index = "network_weather-2015-10-19"
+# nw_index = "network_weather-2015-10-19"
 usrc = {
     "size": 0,
     "aggregations": {
@@ -235,6 +240,8 @@ def get_throughputs():
             print "predirected throughput: %f" % pre_tp
             if num_tp > 0:
                 print "ratio of actual to predicted: %f" % (avg_tp / pre_tp)
+                queue.join()
+                print "Done"
 
 
 for i in range(num_threads):
