@@ -240,7 +240,7 @@ def get_throughputs():
             print "predirected throughput: %f" % pre_tp
             if num_tp > 0:
                 print "ratio of actual to predicted: %f" % (avg_tp / pre_tp)
-                return
+                sys.exit("Done with %s" % nw_index)
 
 
 for i in range(num_threads):
