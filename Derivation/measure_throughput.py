@@ -29,7 +29,7 @@ queue = Queue.Queue()
 nw_indices = []
 i = 19
 while i < 26:
-    nw_indices += str("network_weather-2015-10-%d" % i)
+    nw_indices.append("network_weather-2015-10-%d" % i)
     i += 1
 
 print nw_indices
