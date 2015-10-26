@@ -30,6 +30,7 @@ nw_indices = []
 i = 19
 while i < 26:
     nw_indices += ("network_weather-2015-10-%d" % i)
+    i += 1
 
 print str(nw_indices)
 
