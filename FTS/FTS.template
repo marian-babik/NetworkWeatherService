@@ -1,0 +1,33 @@
+curl -XPOST 'cl-analytics.mwt2.org:9200/_template/fts' -d '{
+    "template" : "fts-*",
+    "settings" : {
+        "number_of_shards" : 5,
+        "number_of_replicas" : 1
+    },
+    "mappings" : {
+        "_default_": {
+                "dynamic_templates": [
+                    { "notanalyzed": {
+                          "match":              "*",
+                          "match_mapping_type": "string",
+                          "mapping": {
+                              "type":        "string",
+                              "index":       "not_analyzed"
+                          }
+                       }
+                    }
+                  ]
+        },
+        "transfer" : {
+            "_source" : { "enabled" : true },
+            "properties" : {
+            "activity" : { "type" : "string", "index" : "not_analyzed" },
+            "atlas_site_dst" : { "type" : "string", "index" : "not_analyzed" },
+            "atlas_site_src" : { "type" : "string", "index" : "not_analyzed" },
+            "fts_ended_at":{"type" : "date"},
+            "fts_started_at":{"type" : "date"},
+            "submitted_at":{"type" : "date"}
+            }
+        }
+    }
+}'
