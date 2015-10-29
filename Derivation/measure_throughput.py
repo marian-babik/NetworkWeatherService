@@ -8,9 +8,10 @@ import math
 
 debug = 0
 if len(sys.argv) == 2:
-    nw_index = "network_weather-2015-10-%d" % int(sys.argv[1])
+    date = "2015-10-%d" % int(sys.argv[1])
 else:
-    nw_index = "network_weather-2015-10-19"
+    date = "2015-10-19"
+nw_index = "network_weather-" + date
 # if len(sys.argv) == 2:
 #     debug = (1 if sys.argv[1] == "d" else 0)
 # else: debug = 0
@@ -239,7 +240,7 @@ def get_throughputs():
             pre_tp = max_throughput(avg_sd_delay, avg_ds_delay, avg_pl)
             # print "predirected throughput: %f" % pre_tp
             if num_tp > 0:
-                print "[%s %s] ratio of actual to predicted: %f" % (nw_index, table_index, (avg_tp / pre_tp))
+                print "[%s %s] %f" % (date, table_index, (avg_tp / pre_tp))
                 # print "Done with %s" % nw_index
                 sys.stdout.flush()
                 os._exit(1)
