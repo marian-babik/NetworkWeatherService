@@ -181,11 +181,11 @@ def get_throughputs():
                 tot_tp += hit['_source']['@message']['throughput']
                 # print "throughput\t\t(%s  -  %s)" % (src, dst)
 
-        print "node_table[%s]:" % table_index
-        print "\tpacket_loss: %s" % node_table[table_index]['packet_loss']
-        print "\tlatency: %s" % node_table[table_index]['latency']
-        print "\tthroughput: %s" % node_table[table_index]['throughput']
-        print "\n"
+        # print "node_table[%s]:" % table_index
+        # print "\tpacket_loss: %s" % node_table[table_index]['packet_loss']
+        # print "\tlatency: %s" % node_table[table_index]['latency']
+        # print "\tthroughput: %s" % node_table[table_index]['throughput']
+        # print "\n"
 
         table_index = "%s <--> %s" % (d_name, s_name)
         node_table[table_index] = {}
@@ -224,23 +224,23 @@ def get_throughputs():
         if num_pl > 0: avg_pl = tot_pl / num_pl
         if num_tp > 0: avg_tp = tot_tp / num_tp
 
-        print "node_table[%s]:" % table_index
-        print "\tpacket_loss: %s" % node_table[table_index]['packet_loss']
-        print "\tlatency: %s" % node_table[table_index]['latency']
-        print "\tthroughput: %s" % node_table[table_index]['throughput']
-        print "\n"
+        # print "node_table[%s]:" % table_index
+        # print "\tpacket_loss: %s" % node_table[table_index]['packet_loss']
+        # print "\tlatency: %s" % node_table[table_index]['latency']
+        # print "\tthroughput: %s" % node_table[table_index]['throughput']
+        # print "\n"
 
-        print "RESULTS[%s]:" % table_index
-        if num_pl > 0: print "packet_loss: %f" % avg_pl
-        if num_sd_delay > 0 and num_ds_delay > 0: print "latency: %f" % (avg_sd_delay + avg_ds_delay)
-        if num_tp > 0: print "throughput: %f" % avg_tp
+        # print "[%s]" % table_index
+        # if num_pl > 0: print "\tpacket_loss: %f" % avg_pl
+        # if num_sd_delay > 0 and num_ds_delay > 0: print "\tlatency: %f" % (avg_sd_delay + avg_ds_delay)
+        # if num_tp > 0: print "\tthroughput: %f" % avg_tp
 
         if num_sd_delay > 0 and num_ds_delay > 0 and num_pl > 0:
             pre_tp = max_throughput(avg_sd_delay, avg_ds_delay, avg_pl)
-            print "predirected throughput: %f" % pre_tp
+            # print "predirected throughput: %f" % pre_tp
             if num_tp > 0:
-                print "ratio of actual to predicted: %f" % (avg_tp / pre_tp)
-                print "Done with %s" % nw_index
+                print "[%s %s] ratio of actual to predicted: %f" % (nw_index, table_index, (avg_tp / pre_tp))
+                # print "Done with %s" % nw_index
                 sys.stdout.flush()
                 os._exit(1)
 
