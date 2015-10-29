@@ -20,6 +20,7 @@ def max_throughput(time_a, time_b, mean_packet_loss):
     if mean_packet_loss == 0:
         mean_packet_loss = 0.000001 # Assume no packet loss
     # Formula given by https://en.wikipedia.org/wiki/TCP_tuning#Packet_loss
+    print "\tRTT = %f" % round_trip_time
     return mean_segment_size / (round_trip_time * math.sqrt(mean_packet_loss))
 
 import requests
@@ -191,10 +192,12 @@ def get_throughputs():
         if num_tp > 0: avg_tp = tot_tp / num_tp
 
         if num_sd_delay > 0 and num_ds_delay > 0 and num_pl > 0:
+
+            print "[%s %s]" % (date, table_index)
             pre_tp = max_throughput(avg_sd_delay, avg_ds_delay, avg_pl)
 
             if num_tp > 0:
-                print "[%s %s] (%f\t / %f)\t =\t %f" % (date, table_index, avg_tp, pre_tp, (avg_tp / pre_tp))
+                print "\t(%f\t / %f)\t =\t %f" % (avg_tp, pre_tp, (avg_tp / pre_tp))
                 sys.stdout.flush()
                 os._exit(1)
 
