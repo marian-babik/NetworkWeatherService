@@ -194,7 +194,7 @@ def get_throughputs():
             pre_tp = max_throughput(avg_sd_delay, avg_ds_delay, avg_pl)
 
             if num_tp > 0:
-                print "[%s %s] %f" % (date, table_index, (avg_tp / pre_tp))
+                print "[%s %s] (%f\t / %f)\t =\t %f" % (date, table_index, avg_tp, pre_tp, (avg_tp / pre_tp))
                 sys.stdout.flush()
                 os._exit(1)
 
