@@ -18,7 +18,7 @@ def max_throughput(time_a, time_b, mean_packet_loss):
     mean_segment_size = 1500
     round_trip_time = time_a + time_b
     if mean_packet_loss == 0:
-        mean_packet_loss = 1 # Assume no packet loss
+        mean_packet_loss = 0.000001 # Assume no packet loss
     # Formula given by https://en.wikipedia.org/wiki/TCP_tuning#Packet_loss
     return mean_segment_size / (round_trip_time * math.sqrt(mean_packet_loss))
 
