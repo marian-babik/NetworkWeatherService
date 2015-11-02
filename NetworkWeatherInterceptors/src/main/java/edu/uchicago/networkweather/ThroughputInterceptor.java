@@ -55,8 +55,6 @@ public class ThroughputInterceptor implements Interceptor {
 		String source = jBody.get("meta").getAsJsonObject().get("source").toString().replace("\"", "");
 		String destination = jBody.get("meta").getAsJsonObject().get("destination").toString().replace("\"", "");
 		String ma = jBody.get("meta").getAsJsonObject().get("measurement_agent").toString();
-		String time_duration = jBody.get("meta").getAsJsonObject().get("time_duration").toString().replace("\"", "");
-		Float td= Float.parseFloat(time_duration);
 		
 		String body1 = "{\"src\":\"" + source + "\",\"dest\":\"" + destination + "\",\"MA\":" + ma + ",";
 		
@@ -83,7 +81,7 @@ public class ThroughputInterceptor implements Interceptor {
 		for (Map.Entry<String, JsonElement> entry : datapoints)
 		{
 		    Long ts=Long.parseLong(entry.getKey())*1000;
-		    Float thr = entry.getValue().getAsFloat()/td;
+		    Float thr = entry.getValue().getAsFloat();
 			LOG.debug("throughput: " + ts + "/" + thr);
 
 			newheaders.put("timestamp", ts.toString());
@@ -106,7 +104,7 @@ public class ThroughputInterceptor implements Interceptor {
 	}
 
 	public List<Event> intercept(List<Event> events) {
-		LOG.info("got a list of " + events.size() + " events");
+		LOG.debug("got " + events.size() + " events.");
 		List<Event> interceptedEvents = new ArrayList<Event>(events.size());
 		for (Event event : events) {
 			List<Event> remadeEvents=intercepts(event);
@@ -114,7 +112,7 @@ public class ThroughputInterceptor implements Interceptor {
 				interceptedEvents.addAll(remadeEvents);
 			}
 		}
-		LOG.info("Returned " + interceptedEvents.size() + " measurements.\n");
+		LOG.info("Returned " + interceptedEvents.size());
 		return interceptedEvents;
 	}
 

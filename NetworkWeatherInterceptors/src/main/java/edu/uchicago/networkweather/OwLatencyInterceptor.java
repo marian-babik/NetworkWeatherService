@@ -151,7 +151,7 @@ public class OwLatencyInterceptor implements Interceptor {
 	}
 
 	public List<Event> intercept(List<Event> events) {
-		LOG.info("got a list of " + events.size() + " events");
+		LOG.debug("got " + events.size() + " events");
 		List<Event> interceptedEvents = new ArrayList<Event>(events.size());
 		for (Event event : events) {
 			List<Event> remadeEvents = intercepts(event);
@@ -159,7 +159,7 @@ public class OwLatencyInterceptor implements Interceptor {
 				interceptedEvents.addAll(remadeEvents);
 			}
 		}
-		LOG.info("Returned " + interceptedEvents.size() + " measurements.\n");
+		LOG.info("Returned " + interceptedEvents.size());
 		return interceptedEvents;
 	}
 
