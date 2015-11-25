@@ -2,7 +2,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>edu.uchicago.networkweather</groupId>
-	<version>0.0.4</version>
+	<version>0.0.5</version>
 	<name>NetworkWeatherInterceptor</name>
 	<dependencies>
 		<dependency>
@@ -19,6 +19,16 @@
   		<groupId>org.apache.flume</groupId>
   		<artifactId>flume-ng-core</artifactId>
   		<version>1.6.0</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>org.apache.flume.flume-ng-sinks</groupId>
+  		<artifactId>flume-ng-elasticsearch-sink</artifactId>
+  		<version>1.6.0</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>org.elasticsearch</groupId>
+  		<artifactId>elasticsearch</artifactId>
+  		<version>1.7.1</version>
   	</dependency>
 	</dependencies>
 	<artifactId>nwinterceptor</artifactId>
