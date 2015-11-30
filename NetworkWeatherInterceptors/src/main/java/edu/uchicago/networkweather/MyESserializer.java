@@ -18,6 +18,8 @@ import org.apache.flume.sink.elasticsearch.ElasticSearchEventSerializer;
 import org.elasticsearch.common.collect.Maps;
 import org.elasticsearch.common.io.BytesStream;
 import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An extended serializer for flume events into the same format LogStash uses</p>
@@ -58,8 +60,9 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
  * </pre>
  * 
  */
-public class MyESserializer implements ElasticSearchEventSerializer {//, DocumentIdBuilder {
+public class MyESserializer implements ElasticSearchEventSerializer {
 
+	private static final Logger LOG = LoggerFactory.getLogger(MyESserializer.class);
 	
 	public XContentBuilder getXContentBuilder(Event event) throws IOException {
 		XContentBuilder builder = jsonBuilder().startObject();
@@ -69,17 +72,19 @@ public class MyESserializer implements ElasticSearchEventSerializer {//, Documen
 
 	//@Override
 	public BytesStream getContentBuilder(Event event) throws IOException {
+		LOG.warn("getContentBuilder called");
 		return getXContentBuilder(event);
 	}
 
 	private void appendBody(XContentBuilder builder, Event event) throws IOException, UnsupportedEncodingException {
+		LOG.warn("Appending Body");
 		byte[] body = event.getBody();
 		ContentBuilderUtilEx.appendField(builder, "@message", body, false);
 	}
 
 	private void appendHeaders(XContentBuilder builder, Event event) throws IOException {
 		Map<String, String> headers = Maps.newHashMap(event.getHeaders());
-
+		LOG.warn("Appending Headers");
 		// look for a "message" header and append as body if exists
 		String message = headers.get("message");
 		if (!StringUtils.isBlank(message) && StringUtils.isBlank(headers.get("@message"))) {
@@ -121,7 +126,6 @@ public class MyESserializer implements ElasticSearchEventSerializer {//, Documen
 			headers.remove("src_path");
 		}
 
-
 		for (String key : headers.keySet()) {
 				byte[] val = headers.get(key).getBytes(charset);
 				ContentBuilderUtilEx.appendField(builder, key, val, false);
@@ -131,15 +135,12 @@ public class MyESserializer implements ElasticSearchEventSerializer {//, Documen
 
 
 
-
 	public void configure(Context context) {
-		// NO-OP ..
-		
+		LOG.warn("configure from context");		
 	}
 
 	public void configure(ComponentConfiguration conf) {
-		// NO-OP ..
-		
+		LOG.warn("configure from ComponentConfiguration");
 	}
 
 }
