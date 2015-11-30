@@ -65,21 +65,22 @@ public class MyESserializer implements ElasticSearchEventSerializer {
 	private static final Logger LOG = LoggerFactory.getLogger(MyESserializer.class);
 	
 	public XContentBuilder getXContentBuilder(Event event) throws IOException {
+		LOG.error("getXContentBuilder called");
 		XContentBuilder builder = jsonBuilder().startObject();
-		appendHeaders(builder, event);
+		//appendHeaders(builder, event);
 		return builder;
 	}
 
 	//@Override
 	public BytesStream getContentBuilder(Event event) throws IOException {
-		LOG.warn("getContentBuilder called");
+		LOG.error("getContentBuilder called");
 		return getXContentBuilder(event);
 	}
 
 	private void appendBody(XContentBuilder builder, Event event) throws IOException, UnsupportedEncodingException {
-		LOG.warn("Appending Body");
+		LOG.error("Appending Body");
 		byte[] body = event.getBody();
-		ContentBuilderUtilEx.appendField(builder, "@message", body, false);
+		ContentBuilderUtilEx.appendField(builder, "@messagggge", body, false);
 	}
 
 	private void appendHeaders(XContentBuilder builder, Event event) throws IOException {

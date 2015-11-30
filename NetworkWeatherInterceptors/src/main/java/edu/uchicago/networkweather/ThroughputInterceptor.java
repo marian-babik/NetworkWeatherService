@@ -72,7 +72,7 @@ public class ThroughputInterceptor implements Interceptor {
 		body1+="\"destProduction\":"+mapper.getProductionThroughput(destination)+",";
 		
 		
-		Map<String, String> newheaders = new HashMap<String, String>(1);
+		Map<String, String> newheaders = new HashMap<String, String>(4);
 		
 		Set<Entry<String, JsonElement>> datapoints = jBody.get("datapoints").getAsJsonObject().entrySet() ;
 		
@@ -85,12 +85,17 @@ public class ThroughputInterceptor implements Interceptor {
 			LOG.debug("throughput: " + ts + "/" + thr);
 
 			newheaders.put("timestamp", ts.toString());
+			newheaders.put("src", source);
+			newheaders.put("dest", destination);
+			newheaders.put("MA", ma);
+			
 			
 			String bod = body1 +"\"throughput\":"+ thr.toString() + "}";
 			LOG.debug(bod);
 
 			Event evnt=EventBuilder.withBody(bod.getBytes(charset), newheaders);
-//			LOG.debug(evnt.toString());
+			
+			LOG.warn(newheaders.toString());
 			
 			measurements.add(evnt);
 		}
