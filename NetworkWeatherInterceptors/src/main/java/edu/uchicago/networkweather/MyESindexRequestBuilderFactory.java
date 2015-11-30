@@ -79,10 +79,10 @@ public class MyESindexRequestBuilderFactory extends AbstractElasticSearchIndexRe
 	protected void prepareIndexRequest(IndexRequestBuilder indexRequest, String indexName, String indexType, Event event) throws IOException {
 		LOG.error("calling serializer: "+ event.toString());
 
-		Map<String, Object> source = new HashMap<String, Object>(3);
+		Map<String, Object> source = new HashMap<String, Object>(8);
 		
-	    df.setTimeZone(tz);
-	    String nowAsISO = df.format(new Date());
+//	    df.setTimeZone(tz);
+//	    String nowAsISO = df.format(new Date());
 		
 		Map<String,String> headers=event.getHeaders();
 		for (String key : headers.keySet()) {
@@ -90,7 +90,16 @@ public class MyESindexRequestBuilderFactory extends AbstractElasticSearchIndexRe
 			if (key.equals("timestamp")){
 				Long ts= Long.parseLong(headers.get(key));
 				source.put("timestamp", new Date(ts));
-			}else{
+			}
+			else if(key.contains("Production")){
+				if (headers.get(key).equalsIgnoreCase("true")){
+					source.put(key, new Boolean(true));
+				}
+				else{
+					source.put(key, new Boolean(false));
+				}
+			}
+			else{
 				source.put(key, headers.get(key));
 			}
 		}
@@ -101,9 +110,7 @@ public class MyESindexRequestBuilderFactory extends AbstractElasticSearchIndexRe
 		BytesStream contentBuilder = serializer.getContentBuilder(event);
 		BytesReference contentBytes = contentBuilder.bytes();
 		indexRequest.setIndex(indexName).setType(indexType);//.setSource(contentBytes);
-//		source.put("src", "source");
-//		source.put("dest", "destination");
-//		source.put("MA", "ma");
+
 		indexRequest.setSource(source);
 //		String hashId = docIdBuilder.getDocumentId(contentBytes);
 //		if (null != hashId && !hashId.isEmpty())

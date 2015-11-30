@@ -51,28 +51,35 @@ public class ThroughputInterceptor implements Interceptor {
 			return null;
 		}
 
+
+		Map<String, String> newheaders = new HashMap<String, String>(8);
 		 
 		String source = jBody.get("meta").getAsJsonObject().get("source").toString().replace("\"", "");
 		String destination = jBody.get("meta").getAsJsonObject().get("destination").toString().replace("\"", "");
-		String ma = jBody.get("meta").getAsJsonObject().get("measurement_agent").toString();
+		String ma = jBody.get("meta").getAsJsonObject().get("measurement_agent").toString().replace("\"", "");
 		
-		String body1 = "{\"src\":\"" + source + "\",\"dest\":\"" + destination + "\",\"MA\":" + ma + ",";
+		newheaders.put("src", source);
+		newheaders.put("dest", destination);
+		newheaders.put("MA", ma);
+		
 		
 		MappingPair<String,String> srcSite=mapper.getSite(source);
 		MappingPair<String,String> destSite=mapper.getSite(destination);
 		
 		if (srcSite!=null){
-			body1+="\"srcSite\":\""+srcSite.getSite()+"\",\"srcVO\":\""+srcSite.getVO()+"\",";
+			newheaders.put("srcSite", srcSite.getSite());
+			newheaders.put("srcVO", srcSite.getVO());
 		}
 		if (destSite!=null){
-			body1+="\"destSite\":\""+destSite.getSite()+"\",\"destVO\":\""+destSite.getVO()+"\",";
+			newheaders.put("destSite", destSite.getSite());
+			newheaders.put("destVO", destSite.getVO());
 		}		
 
-		body1+="\"srcProduction\":"+mapper.getProductionThroughput(source)+",";
-		body1+="\"destProduction\":"+mapper.getProductionThroughput(destination)+",";
+		newheaders.put("srcProduction",mapper.getProductionThroughput(source).toString());
+		newheaders.put("destProduction",mapper.getProductionThroughput(destination).toString());
 		
-		
-		Map<String, String> newheaders = new HashMap<String, String>(4);
+		String body1 = "{";
+
 		
 		Set<Entry<String, JsonElement>> datapoints = jBody.get("datapoints").getAsJsonObject().entrySet() ;
 		
@@ -85,17 +92,13 @@ public class ThroughputInterceptor implements Interceptor {
 			LOG.debug("throughput: " + ts + "/" + thr);
 
 			newheaders.put("timestamp", ts.toString());
-			newheaders.put("src", source);
-			newheaders.put("dest", destination);
-			newheaders.put("MA", ma);
-			
 			
 			String bod = body1 +"\"throughput\":"+ thr.toString() + "}";
 			LOG.debug(bod);
 
 			Event evnt=EventBuilder.withBody(bod.getBytes(charset), newheaders);
 			
-			LOG.warn(newheaders.toString());
+			LOG.debug(newheaders.toString());
 			
 			measurements.add(evnt);
 		}
