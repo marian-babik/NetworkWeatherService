@@ -94,11 +94,10 @@ public class ThroughputInterceptor implements Interceptor {
 			newheaders.put("throughput", thr.toString());
 
 			String bod = "";
-			//LOG.debug(bod);
 
 			Event evnt=EventBuilder.withBody(bod.getBytes(charset), newheaders);
 			
-			LOG.debug(newheaders.toString());
+//			LOG.info(newheaders.toString());
 			
 			measurements.add(evnt);
 		}

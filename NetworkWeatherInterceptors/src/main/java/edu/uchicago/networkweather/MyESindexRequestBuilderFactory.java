@@ -14,7 +14,6 @@ import org.apache.flume.Context;
 import org.apache.flume.Event;
 import org.apache.flume.conf.ComponentConfiguration;
 import org.apache.flume.sink.elasticsearch.AbstractElasticSearchIndexRequestBuilderFactory;
-import org.apache.flume.sink.elasticsearch.ElasticSearchEventSerializer;
 import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +25,6 @@ public class MyESindexRequestBuilderFactory extends AbstractElasticSearchIndexRe
     TimeZone tz = TimeZone.getTimeZone("UTC");
     DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
     
-	private ElasticSearchEventSerializer serializer = new MyESserializer();
-
 	public MyESindexRequestBuilderFactory() {
 		super(FastDateFormat.getInstance("yyyy.MM.dd", TimeZone.getTimeZone("Etc/UTC")));
 	}
@@ -36,30 +33,9 @@ public class MyESindexRequestBuilderFactory extends AbstractElasticSearchIndexRe
 		super(fd);
 	}
 
-	public MyESindexRequestBuilderFactory(ElasticSearchEventSerializer serializer) {
-		super(FastDateFormat.getInstance("yyyy.MM.dd", TimeZone.getTimeZone("Etc/UTC")));
-
-		this.serializer = serializer;
-	}
-
-	public MyESindexRequestBuilderFactory(ElasticSearchEventSerializer serializer, FastDateFormat fd) {
-		super(fd);
-		this.serializer = serializer;
-	}
-
-	@Override
-	public void configure(Context context) {
-		serializer.configure(context);
-	}
-
-	@Override
-	public void configure(ComponentConfiguration config) {
-		serializer.configure(config);
-	}
-
 	@Override
 	protected void prepareIndexRequest(IndexRequestBuilder indexRequest, String indexName, String indexType, Event event) throws IOException {
-//		LOG.debug("calling serializer: "+ event.toString());
+//		LOG.debug("event: "+ event.toString());
 
 		Map<String, Object> source = new HashMap<String, Object>(8);
 		
@@ -90,11 +66,15 @@ public class MyESindexRequestBuilderFactory extends AbstractElasticSearchIndexRe
 			}
 		}
 		
-//		BytesStream contentBuilder = serializer.getContentBuilder(event);
-//		BytesReference contentBytes = contentBuilder.bytes();
-		indexRequest.setIndex(indexName).setType(indexType);//.setSource(contentBytes);
+		indexRequest.setIndex(indexName).setType(indexType).setSource(source);
+	}
 
-		indexRequest.setSource(source);
+	@Override
+	public void configure(Context arg0) {
+	}
+
+	@Override
+	public void configure(ComponentConfiguration arg0) {
 	}
 
 }
