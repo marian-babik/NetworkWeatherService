@@ -55,39 +55,44 @@ public class OwLatencyInterceptor implements Interceptor {
 		}
 
 		String source, destination,ma;
-
+		Map<String, String> newheaders = new HashMap<String, String>(13);
+		
 		try {
 			source = jBody.get("meta").getAsJsonObject().get("source").toString().replace("\"", "");
 			destination = jBody.get("meta").getAsJsonObject().get("destination").toString().replace("\"", "");
-			ma = jBody.get("meta").getAsJsonObject().get("measurement_agent").toString();
+			ma = jBody.get("meta").getAsJsonObject().get("measurement_agent").toString().replace("\"", "");
+			
+			newheaders.put("src", source);
+			newheaders.put("dest", destination);
+			newheaders.put("MA", ma);
+			
 		} catch (Exception e) {
 			LOG.warn("problem in parsing meta info." + e.toString());
 			return null;
 		}
 
-		String body1 = "{\"src\":\"" + source + "\",\"dest\":\"" + destination + "\",\"MA\":" + ma + ",";
+//		String body1 = "{\"src\":\"" + source + "\",\"dest\":\"" + destination + "\",\"MA\":" + ma + ",";
 
 		MappingPair<String,String> srcSite=mapper.getSite(source);
 		MappingPair<String,String> destSite=mapper.getSite(destination);
 		
 		if (srcSite!=null){
-			body1+="\"srcSite\":\""+srcSite.getSite()+"\",\"srcVO\":\""+srcSite.getVO()+"\",";
+			newheaders.put("srcSite", srcSite.getSite());
+			newheaders.put("srcVO", srcSite.getVO());
 		}
 		if (destSite!=null){
-			body1+="\"destSite\":\""+destSite.getSite()+"\",\"destVO\":\""+destSite.getVO()+"\",";
+			newheaders.put("destSite", destSite.getSite());
+			newheaders.put("destVO", destSite.getVO());
 		}	
 		
-		Map<String, String> newheaders = new HashMap<String, String>(1);
 
 		if (!jBody.has("summaries")) {
 			LOG.warn("this event has no summaries of any kind.");
 			return null;
 		}
-
-
-		body1+="\"srcProduction\":"+mapper.getProductionLatency(source)+",";
-		body1+="\"destProduction\":"+mapper.getProductionLatency(destination)+",";
 		
+		newheaders.put("srcProduction",mapper.getProductionThroughput(source).toString());
+		newheaders.put("destProduction",mapper.getProductionThroughput(destination).toString());
 		
 		JsonArray summaries = jBody.get("summaries").getAsJsonArray();
 
@@ -129,17 +134,21 @@ public class OwLatencyInterceptor implements Interceptor {
 				mean = stat.get("mean").getAsFloat();
 				median = stat.get("median").getAsFloat();
 				stdev = stat.get("standard-deviation").getAsFloat();
+
+				newheaders.put("delay_mean", mean.toString());
+				newheaders.put("delay_median", median.toString());
+				newheaders.put("delay_sd", stdev.toString());
+				
 			} catch (UnsupportedOperationException e) {
 				LOG.debug("problem in parsing statistics info." + e.getMessage() );
 				e.printStackTrace();
 				LOG.debug(stat.toString());
 			}
 
-			String bod = body1 + "\"delay_mean\":" + mean.toString() + ",\"delay_median\":" + median.toString() + ",\"delay_sd\":" + stdev.toString() + "}";
-
-			LOG.debug(bod);
+			String bod = "";
 			Event evnt = EventBuilder.withBody(bod.getBytes(charset), newheaders);
 			// LOG.debug(evnt.toString());
+			
 			measurements.add(evnt);
 		}
 		return measurements;

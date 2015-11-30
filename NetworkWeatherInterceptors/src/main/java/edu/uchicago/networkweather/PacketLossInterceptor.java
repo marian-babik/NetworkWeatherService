@@ -49,20 +49,33 @@ public class PacketLossInterceptor implements Interceptor {
 			return null;
 		}
 
-		 
-		String source = jBody.get("meta").getAsJsonObject().get("source").toString().replace("\"", "");
-		String destination = jBody.get("meta").getAsJsonObject().get("destination").toString().replace("\"", "");
-		String ma = jBody.get("meta").getAsJsonObject().get("measurement_agent").toString();
-		String body1 = "{\"src\":\"" + source + "\",\"dest\":\"" + destination + "\",\"MA\":" + ma + ",";
+		String source, destination,ma;
+		Map<String, String> newheaders = new HashMap<String, String>(8);
+		
+		try {
+			source = jBody.get("meta").getAsJsonObject().get("source").toString().replace("\"", "");
+			destination = jBody.get("meta").getAsJsonObject().get("destination").toString().replace("\"", "");
+			ma = jBody.get("meta").getAsJsonObject().get("measurement_agent").toString().replace("\"", "");
+			
+			newheaders.put("src", source);
+			newheaders.put("dest", destination);
+			newheaders.put("MA", ma);
+			
+		} catch (Exception e) {
+			LOG.warn("problem in parsing meta info." + e.toString());
+			return null;
+		}
 		
 		MappingPair<String,String> srcSite=mapper.getSite(source);
 		MappingPair<String,String> destSite=mapper.getSite(destination);
 		
 		if (srcSite!=null){
-			body1+="\"srcSite\":\""+srcSite.getSite()+"\",\"srcVO\":\""+srcSite.getVO()+"\",";
+			newheaders.put("srcSite", srcSite.getSite());
+			newheaders.put("srcVO", srcSite.getVO());
 		}
 		if (destSite!=null){
-			body1+="\"destSite\":\""+destSite.getSite()+"\",\"destVO\":\""+destSite.getVO()+"\",";
+			newheaders.put("destSite", destSite.getSite());
+			newheaders.put("destVO", destSite.getVO());
 		}	
 		
 		if (! jBody.has("summaries")){
@@ -71,8 +84,8 @@ public class PacketLossInterceptor implements Interceptor {
 		}
 		
 
-		body1+="\"srcProduction\":"+mapper.getProductionLatency(source)+",";
-		body1+="\"destProduction\":"+mapper.getProductionLatency(destination)+",";
+		newheaders.put("srcProduction",mapper.getProductionThroughput(source).toString());
+		newheaders.put("destProduction",mapper.getProductionThroughput(destination).toString());
 		
 		
 		JsonArray summaries = jBody.get("summaries").getAsJsonArray();
@@ -95,14 +108,12 @@ public class PacketLossInterceptor implements Interceptor {
 		
 		List<Event> measurements = new ArrayList<Event>(results.size());
 		
-		Map<String, String> newheaders = new HashMap<String, String>(1);
-		
 		for (int ind = 0; ind < results.size(); ind++) {
 			Long ts = results.get(ind).getAsJsonArray().get(0).getAsLong() * 1000;
 			newheaders.put("timestamp", ts.toString());
 			Float packetLoss = results.get(ind).getAsJsonArray().get(1).getAsFloat();
-			String bod = body1 +"\"packet_loss\":" + packetLoss.toString() + "}";
-			LOG.debug(bod);
+			newheaders.put("packet_loss", packetLoss.toString());
+			String bod = "";
 			Event evnt=EventBuilder.withBody(bod.getBytes(charset), newheaders);
 //			LOG.debug(evnt.toString());
 			measurements.add(evnt);

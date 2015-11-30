@@ -2,8 +2,6 @@ package edu.uchicago.networkweather;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,8 +20,6 @@ public class MyESindexRequestBuilderFactory extends AbstractElasticSearchIndexRe
 	
 	private static final Logger LOG = LoggerFactory.getLogger(MyESindexRequestBuilderFactory.class);
 	final Charset charset = Charset.forName("UTF-8");
-    TimeZone tz = TimeZone.getTimeZone("UTC");
-    DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
     
 	public MyESindexRequestBuilderFactory() {
 		super(FastDateFormat.getInstance("yyyy.MM.dd", TimeZone.getTimeZone("Etc/UTC")));
@@ -37,10 +33,7 @@ public class MyESindexRequestBuilderFactory extends AbstractElasticSearchIndexRe
 	protected void prepareIndexRequest(IndexRequestBuilder indexRequest, String indexName, String indexType, Event event) throws IOException {
 //		LOG.debug("event: "+ event.toString());
 
-		Map<String, Object> source = new HashMap<String, Object>(8);
-		
-//	    df.setTimeZone(tz);
-//	    String nowAsISO = df.format(new Date());
+		Map<String, Object> source = new HashMap<String, Object>(13);
 		
 		Map<String,String> headers=event.getHeaders();
 		for (String key : headers.keySet()) {
@@ -57,9 +50,9 @@ public class MyESindexRequestBuilderFactory extends AbstractElasticSearchIndexRe
 					source.put(key, new Boolean(false));
 				}
 			}
-			else if (key.equals("throughput")){
-				Float thr=Float.parseFloat(headers.get(key));
-				source.put(key, thr);
+			else if (key.contains("delay_") || key.equals("packet_loss") || key.equals("throughput")){
+				Float v = Float.parseFloat(headers.get(key));
+				source.put(key, v);
 			}
 			else{
 				source.put(key, headers.get(key));
