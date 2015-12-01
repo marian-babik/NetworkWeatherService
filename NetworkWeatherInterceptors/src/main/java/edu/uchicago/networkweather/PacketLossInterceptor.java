@@ -84,8 +84,8 @@ public class PacketLossInterceptor implements Interceptor {
 		}
 		
 
-		newheaders.put("srcProduction",mapper.getProductionThroughput(source).toString());
-		newheaders.put("destProduction",mapper.getProductionThroughput(destination).toString());
+		newheaders.put("srcProduction",mapper.getProductionLatency(source).toString());
+		newheaders.put("destProduction",mapper.getProductionLatency(destination).toString());
 		
 		
 		JsonArray summaries = jBody.get("summaries").getAsJsonArray();
