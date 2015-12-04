@@ -60,7 +60,7 @@ def reload():
             if p.sitename in sites: p.VO="ATLAS";
             sites.append(s["rc_site"])
             PerfSonars[p.ip]=p
-        pprint(PerfSonars)
+        print PerfSonars
         print 'Perfsonars reloaded.'
     except:
         print "Could not get perfsonars from AGIS. Exiting..."

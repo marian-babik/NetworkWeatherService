@@ -14,8 +14,6 @@ from elasticsearch import helpers
 
 import stomp
 
-from pprint import pprint
-
 #global messages
 #messages=[]
 
