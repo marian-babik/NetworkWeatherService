@@ -32,6 +32,9 @@ def getIP(host):
 
 def reload():
     global ot
+    global throughputHosts
+    global latencyHosts
+    
     ot=time.time()
     try:
         req = urllib2.Request("http://atlas-agis-api.cern.ch/request/site/query/list/?json&vo_name=atlas&state=ACTIVE", None)
