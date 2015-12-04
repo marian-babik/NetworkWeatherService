@@ -110,7 +110,7 @@ def reload():
 
 def getPS(ip):
     global ot
-    if (time.time()-ot)>600: 
+    if (time.time()-ot)>86400: 
         print ot
         reload()
     if ip in PerfSonars:
