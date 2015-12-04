@@ -41,7 +41,7 @@ def eventCreator():
         m=json.loads(d)
         
         d = datetime.now()
-        ind="network_weather_dev-"+str(d.year)+"."+str(d.month)+"."+str(d.day)
+        ind="network_weather_2-"+str(d.year)+"."+str(d.month)+"."+str(d.day)
         data = {
             '_index': ind,
             '_type': 'latency'
