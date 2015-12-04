@@ -9,14 +9,16 @@ except ImportError: import json
 
 ot=0
 PerfSonars={}
+throughputHosts=[]
 
 class ps:
     hostname=''
     sitename=''
     VO=''
-    production=False
     ip=''
     flavor=''
+    def prnt(self):
+        print 'ip:',self.ip,'\thost:',hostname,''
 
 def getIP(host):
     ip='unknown'
@@ -43,7 +45,7 @@ def reload():
     except:
         print "Could not get sites from AGIS. Exiting..."
         print "Unexpected error: ", str(sys.exc_info()[0])
-        sys.exit(1)
+
         
     try:
         req = urllib2.Request("http://atlas-agis-api.cern.ch/request/service/query/list/?json&state=ACTIVE&type=PerfSonar", None)
@@ -65,15 +67,60 @@ def reload():
     except:
         print "Could not get perfsonars from AGIS. Exiting..."
         print "Unexpected error: ", str(sys.exc_info()[0])
-        sys.exit(1)
+    
+    try:
+        req = urllib2.Request("https://myosg.grid.iu.edu/psmesh/json/name/wlcg-all", None)
+        opener = urllib2.build_opener()
+        f = opener.open(req)
+        res = json.load(f)
+        throughputHosts=[]
+        for o in res['organizations']:
+            for s in o['sites']:
+                for h in s['hosts']:
+                    for a in h['addresses']:
+                        print a
+                        ip=getIP(a)
+                        if ip!='unknown': throughputHosts.append(ip)
+        print throughputHosts
+        print 'throughputHosts reloaded.'
+    except:
+        print "Could not get perfsonar throughput hosts. Exiting..."
+        print "Unexpected error: ", str(sys.exc_info()[0])
         
+    try:
+        req = urllib2.Request("https://myosg.grid.iu.edu/psmesh/json/name/wlcg-latency-all", None)
+        opener = urllib2.build_opener()
+        f = opener.open(req)
+        res = json.load(f)
+        latencyHosts=[]
+        for o in res['organizations']:
+            for s in o['sites']:
+                for h in s['hosts']:
+                    for a in h['addresses']:
+                        print a
+                        ip=getIP(a)
+                        if ip!='unknown': latencyHosts.append(ip)
+        print latencyHosts
+        print 'latencyHosts reloaded.'
+    except:
+        print "Could not get perfsonar latency hosts. Exiting..."
+        print "Unexpected error: ", str(sys.exc_info()[0])
+    
+
 def getPS(ip):
     global ot
     if (time.time()-ot)>600: 
         print ot
         reload()
     if ip in PerfSonars:
-        return [PerfSonars[ip].sitename,PerfSonars[ip].VO,PerfSonars[ip].production]
+        return [PerfSonars[ip].sitename,PerfSonars[ip].VO]
 
-        
-        
+def isProductionLatency(ip):
+    if ip in latencyHosts: 
+        return True
+    return False 
+          
+def isProductionThroughput(ip):
+    if ip in throughputHosts: 
+        return True
+    return False  

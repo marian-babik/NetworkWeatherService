@@ -60,13 +60,15 @@ def eventCreator():
         if de!= None:
             data['destSite']=de[0]
             data['destVO']=de[1]
+        data['srcProduction']=siteMapping.isProductionLatency(source)
+        data['destProduction']=siteMapping.isProductionLatency(destination)
         su=m['summaries']
         for s in su:
             if s['summary_window']=='300' and s['summary_type']=='statistics':
                 results=s['summary_data']
                 # print results
                 for r in results:
-                    data['timestamp']=r[0]*1000
+                    data['timestamp']=datetime.fromtimestamp(r[0]).isoformat()
                     data['delay_mean']=r[1]['mean']
                     data['delay_median']=r[1]['median']
                     data['delay_sd']=r[1]['standard-deviation']
