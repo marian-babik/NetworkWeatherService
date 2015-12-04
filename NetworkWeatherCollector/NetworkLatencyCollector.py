@@ -56,10 +56,12 @@ def eventCreator():
         data['dest']=destination
         so=siteMapping.getPS(source)
         de=siteMapping.getPS(destination)
-        data['srcSite']=so[0]
-        data['srcVO']=so[1]
-        data['destSite']=de[0]
-        data['destVO']=de[1]
+        if so!= None:
+            data['srcSite']=so[0]
+            data['srcVO']=so[1]
+        if de!= None:
+            data['destSite']=de[0]
+            data['destVO']=de[1]
         su=m['summaries']
         for s in su:
             if s['summary_window']=='300' and s['summary_type']=='statistics':

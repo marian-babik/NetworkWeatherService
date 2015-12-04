@@ -7,6 +7,7 @@ import time
 try: import simplejson as json
 except ImportError: import json
 
+global ot
 PerfSonars={}
 ot=0
 
@@ -72,3 +73,6 @@ def getPS(ip):
         reload()
     if ip in PerfSonars:
         return [PerfSonars[ip].sitename,PerfSonars[ip].VO,PerfSonars[ip].production]
+
+        
+        
