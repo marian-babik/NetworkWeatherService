@@ -34,7 +34,7 @@ def eventCreator():
         m=json.loads(d)
         
         d = datetime.now()
-        ind="network_weather_dev-"+str(d.year)+"."+str(d.month)+"."+str(d.day)
+        ind="network_weather_2-"+str(d.year)+"."+str(d.month)+"."+str(d.day)
         data = {
             '_index': ind,
             '_type': 'packet_loss_rate'
@@ -56,11 +56,15 @@ def eventCreator():
         data['srcProduction']=siteMapping.isProductionLatency(source)
         data['destProduction']=siteMapping.isProductionLatency(destination)
         su=m['summaries']
+        # print su
         for s in su:
-            data['timestamp']=datetime.utcfromtimestamp(s['timestamp']).isoformat()
-            data['delay_mean']=s['packet_loss']
-            print data
-            aLotOfData.append(data)
+            if s['summary_window']=='300':
+                results = s['summary_data']
+                for r in results:
+                    data['timestamp']=datetime.utcfromtimestamp(r[0]).isoformat()
+                    data['packet_loss']=r[1]
+                    # print data
+                    aLotOfData.append(data)
         q.task_done()
         if len(aLotOfData)>100:
             res = helpers.bulk(es, aLotOfData)
