@@ -7,9 +7,8 @@ import time
 try: import simplejson as json
 except ImportError: import json
 
-global ot
-PerfSonars={}
 ot=0
+PerfSonars={}
 
 class ps:
     hostname=''
@@ -70,6 +69,7 @@ def reload():
         
 def getPS(ip):
     if (time.time()-ot)>600: 
+        print ot
         reload()
     if ip in PerfSonars:
         return [PerfSonars[ip].sitename,PerfSonars[ip].VO,PerfSonars[ip].production]
