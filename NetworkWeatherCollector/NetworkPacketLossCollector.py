@@ -17,7 +17,7 @@ import stomp
 allhosts=[]
 allhosts.append([('128.142.36.204',61513)])
 allhosts.append([('188.185.227.50',61513)])
-topic = '/topic/perfsonar.histogram-owdelay'
+topic = '/topic/perfsonar.packet-loss-rate'
 
 siteMapping.reload()
 
@@ -34,10 +34,10 @@ def eventCreator():
         m=json.loads(d)
         
         d = datetime.now()
-        ind="network_weather_2-"+str(d.year)+"."+str(d.month)+"."+str(d.day)
+        ind="network_weather_dev-"+str(d.year)+"."+str(d.month)+"."+str(d.day)
         data = {
             '_index': ind,
-            '_type': 'latency'
+            '_type': 'packet_loss_rate'
         }
         
         source=m['meta']['source']
@@ -57,16 +57,10 @@ def eventCreator():
         data['destProduction']=siteMapping.isProductionLatency(destination)
         su=m['summaries']
         for s in su:
-            if s['summary_window']=='300' and s['summary_type']=='statistics':
-                results=s['summary_data']
-                # print results
-                for r in results:
-                    data['timestamp']=datetime.utcfromtimestamp(r[0]).isoformat()
-                    data['delay_mean']=r[1]['mean']
-                    data['delay_median']=r[1]['median']
-                    data['delay_sd']=r[1]['standard-deviation']
-                    #print data
-                    aLotOfData.append(data)
+            data['timestamp']=datetime.utcfromtimestamp(s['timestamp']).isoformat()
+            data['delay_mean']=s['packet_loss']
+            print data
+            aLotOfData.append(data)
         q.task_done()
         if len(aLotOfData)>100:
             res = helpers.bulk(es, aLotOfData)
