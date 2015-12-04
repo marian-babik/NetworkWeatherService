@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 
-import sys, time
+import siteMapping
+
+import Queue, os, sys, time
+import threading
+from threading import Thread
+import urllib2
+
 import json
 from datetime import datetime
 from elasticsearch import Elasticsearch
@@ -10,8 +16,8 @@ import stomp
 
 from pprint import pprint
 
-global messages
-messages=[]
+#global messages
+#messages=[]
 
 allhosts=[]
 allhosts.append([('128.142.36.204',61513)])
@@ -27,8 +33,50 @@ class MyListener(object):
     def on_error(self, headers, message):
         print 'received an error %s' % message
     def on_message(self, headers, message):
-        #print 'received a message %s' % message
-        messages.append(message)
+        q.put(message)
+
+def eventCreator():
+    aLotOfData=[]
+    while(True):
+        d=q.get()
+        m=json.loads(d)
+        
+        d = datetime.now()
+        ind="network_weather_dev-"+str(d.year)+"."+str(d.month)+"."+str(d.day)
+        data = {
+            '_index': ind,
+            '_type': 'latency'
+        }
+        
+        source=m['meta']['source']
+        destination=m['meta']['destination']
+        data['MA']=m['meta']['measurement_agent']
+        data['src']=source
+        data['dest']=destination
+        so=getPS(source)
+        de=getPS(destination)
+        data['srcSite']=so[0]
+        data['srcVO']=so[1]
+        data['destSite']=de[0]
+        data['destVO']=de[1]
+        su=m['summaries']
+        for s in su:
+            if s['summary_window']=='300' and s['summary_type']=='statistics':
+                results=s['summary_data']
+                # print results
+                for r in results:
+                    data['timestamp']=r[0]*1000
+                    data['delay_mean']=r[1]['mean']
+                    data['delay_median']=r[1]['median']
+                    data['delay_sd']=r[1]['standard-deviation']
+                    #print data
+                    aLotOfData.append(data)
+        q.task_done()
+        print "buffer size: ", len(aLotOfData), "\tqueue size:", q.qsize()
+        if len(aLotOfData)>100:
+            res = helpers.bulk(es, aLotOfData)
+            print res
+            aLotOfData=[]
 
 passfile = open('/afs/cern.ch/user/i/ivukotic/ATLAS-Hadoop/.passfile')
 passwd=passfile.read()
@@ -43,56 +91,17 @@ print(res.content)
 es = Elasticsearch([{'host':'cl-analytics.mwt2.org', 'port':9200}])
 
 
+q=Queue.Queue()
+#start eventCreator threads
+for i in range(3):
+     t = Thread(target=eventCreator)
+     t.daemon = True
+     t.start()
 
+for host in allhosts:
+    conn = stomp.Connection(host, user='psatlflume', passcode=passwd.strip() )
+    conn.set_listener('MyConsumer', MyListener())
+    conn.start()
+    conn.connect()
+    conn.subscribe(destination = topic, ack = 'auto', id="1", headers = {})
 
-
-while(True):
-    aLotOfData=[]
-    messages=[]
-    d = datetime.now()
-    ind="network_weather_dev-"+str(d.year)+"."+str(d.month)+"."+str(d.day)
-    
-    data = {
-        '_index': ind,
-        '_type': 'latency'
-    }
-    
-    for host in allhosts:
-        try:
-            conn = stomp.Connection(host, user='psatlflume', passcode=passwd.strip() )
-            conn.set_listener('MyConsumer', MyListener())
-            conn.start()
-            conn.connect()
-            conn.subscribe(destination = topic, ack = 'auto', id="1", headers = {})
-            time.sleep(2)
-            conn.disconnect()
-        finally:
-            print len(messages)
-            for message in messages:
-                m=json.loads(message)
-                source=m['meta']['source']
-                destination=m['meta']['destination']
-                data['MA']=m['meta']['measurement_agent']
-                data['src']=source
-                data['dest']=destination
-                data['srcSite']=source
-                data['srcVO']=source
-                data['destSite']=destination
-                data['destVO']=destination
-                su=m['summaries']
-                for s in su:
-                    if s['summary_window']=='300' and s['summary_type']=='statistics':
-                        results=s['summary_data']
-                        # print results
-                        for r in results:
-                            data['timestamp']=r[0]*1000
-                            data['delay_mean']=r[1]['mean']
-                            data['delay_median']=r[1]['median']
-                            data['delay_sd']=r[1]['standard-deviation']
-                            aLotOfData.append(data)
-                            # pprint(data)                
-            # res = helpers.bulk(es, aLotOfData)
-            print "events: ", len(aLotOfData), 
-            #print(res)
-            aLotOfData=[]
-            messages=[]
