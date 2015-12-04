@@ -10,6 +10,7 @@ except ImportError: import json
 ot=0
 PerfSonars={}
 throughputHosts=[]
+latencyHosts=[]
 
 class ps:
     hostname=''
@@ -18,7 +19,7 @@ class ps:
     ip=''
     flavor=''
     def prnt(self):
-        print 'ip:',self.ip,'\thost:',hostname,''
+        print 'ip:',self.ip,'\thost:',self.hostname,'\tVO:',self.VO,'\tflavor:',self.flavor
 
 def getIP(host):
     ip='unknown'
@@ -62,7 +63,7 @@ def reload():
             if p.sitename in sites: p.VO="ATLAS";
             sites.append(s["rc_site"])
             PerfSonars[p.ip]=p
-        print PerfSonars
+            p.prnt()
         print 'Perfsonars reloaded.'
     except:
         print "Could not get perfsonars from AGIS. Exiting..."
