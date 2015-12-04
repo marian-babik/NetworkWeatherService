@@ -68,7 +68,7 @@ def eventCreator():
                 results=s['summary_data']
                 # print results
                 for r in results:
-                    data['timestamp']=datetime.fromtimestamp(r[0]).isoformat()
+                    data['timestamp']=datetime.utcfromtimestamp(r[0]).isoformat()
                     data['delay_mean']=r[1]['mean']
                     data['delay_median']=r[1]['median']
                     data['delay_sd']=r[1]['standard-deviation']
