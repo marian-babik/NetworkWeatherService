@@ -75,7 +75,6 @@ def eventCreator():
                     #print data
                     aLotOfData.append(data)
         q.task_done()
-        print "buffer size: ", len(aLotOfData), "\tqueue size:", q.qsize()
         if len(aLotOfData)>100:
             res = helpers.bulk(es, aLotOfData)
             print res
@@ -108,4 +107,6 @@ for host in allhosts:
     conn.connect()
     conn.subscribe(destination = topic, ack = 'auto', id="1", headers = {})
 
-time.sleep(100)
+while(True):
+    print "qsize:", q.qsize()
+    time.sleep(60)

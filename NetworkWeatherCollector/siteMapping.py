@@ -28,13 +28,14 @@ def getIP(host):
 
 
 def reload():
+    global ot
     ot=time.time()
-    sites=[]
     try:
         req = urllib2.Request("http://atlas-agis-api.cern.ch/request/site/query/list/?json&vo_name=atlas&state=ACTIVE", None)
         opener = urllib2.build_opener()
         f = opener.open(req)
         res = json.load(f)
+        sites=[]
         for s in res:
             sites.append(s["rc_site"])
         # print res
@@ -45,7 +46,6 @@ def reload():
         sys.exit(1)
         
     try:
-        PerfSonars.clear()
         req = urllib2.Request("http://atlas-agis-api.cern.ch/request/service/query/list/?json&state=ACTIVE&type=PerfSonar", None)
         opener = urllib2.build_opener()
         f = opener.open(req)
@@ -60,7 +60,7 @@ def reload():
             if p.sitename in sites: p.VO="ATLAS";
             sites.append(s["rc_site"])
             PerfSonars[p.ip]=p
-        # print res
+        pprint(PerfSonars)
         print 'Perfsonars reloaded.'
     except:
         print "Could not get perfsonars from AGIS. Exiting..."
@@ -68,6 +68,7 @@ def reload():
         sys.exit(1)
         
 def getPS(ip):
+    global ot
     if (time.time()-ot)>600: 
         print ot
         reload()
