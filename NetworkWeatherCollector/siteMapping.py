@@ -28,6 +28,7 @@ def getIP(host):
 
 
 def reload():
+    ot=time.time()
     sites=[]
     try:
         req = urllib2.Request("http://atlas-agis-api.cern.ch/request/site/query/list/?json&vo_name=atlas&state=ACTIVE", None)
@@ -67,6 +68,7 @@ def reload():
         sys.exit(1)
         
 def getPS(ip):
-    if (time.time()-ot)>600: reload()
+    if (time.time()-ot)>600: 
+        reload()
     if ip in PerfSonars:
         return [PerfSonars[ip].sitename,PerfSonars[ip].VO,PerfSonars[ip].production]

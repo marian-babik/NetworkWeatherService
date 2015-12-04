@@ -24,6 +24,7 @@ allhosts.append([('128.142.36.204',61513)])
 allhosts.append([('188.185.227.50',61513)])
 topic = '/topic/perfsonar.histogram-owdelay'
 
+siteMapping.reload()
 
 #MAKE on_message add the message to a queue and make queue 10 deep
 #MAKE a separate thread that uploads ???
@@ -53,8 +54,8 @@ def eventCreator():
         data['MA']=m['meta']['measurement_agent']
         data['src']=source
         data['dest']=destination
-        so=getPS(source)
-        de=getPS(destination)
+        so=siteMapping.getPS(source)
+        de=siteMapping.getPS(destination)
         data['srcSite']=so[0]
         data['srcVO']=so[1]
         data['destSite']=de[0]
