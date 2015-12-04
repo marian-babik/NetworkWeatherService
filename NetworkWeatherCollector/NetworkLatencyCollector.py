@@ -106,3 +106,4 @@ for host in allhosts:
     conn.connect()
     conn.subscribe(destination = topic, ack = 'auto', id="1", headers = {})
 
+time.sleep(100)
