@@ -1,16 +1,16 @@
 #!/bin/sh
 #
-# /etc/init.d/nw_packet_loss
+# /etc/init.d/nw_latency
 #
 # chkconfig: - 64 36
-# description: PS Collector
+# description: PS Latency Collector
  
 # Source init functions
 . /etc/rc.d/init.d/functions
  
  
-title="packet_loss"
-prog="NetworkPacketLossCollector.py"
+title="latency"
+prog="NetworkLatencyCollector.py"
 prefix="/afs/cern.ch/user/i/ivukotic/NetworkWeatherService/NetworkWeatherCollector"
 exec_prefix="${prefix}"
 prog_bin="${exec_prefix}/${prog}"

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# /etc/init.d/nw_packet_loss
+# /etc/init.d/nw_throughput
 #
 # chkconfig: - 64 36
 # description: PS Collector
@@ -10,7 +10,7 @@
  
  
 title="packet_loss"
-prog="NetworkPacketLossCollector.py"
+prog="NetworkThroughputCollector.py"
 prefix="/afs/cern.ch/user/i/ivukotic/NetworkWeatherService/NetworkWeatherCollector"
 exec_prefix="${prefix}"
 prog_bin="${exec_prefix}/${prog}"
