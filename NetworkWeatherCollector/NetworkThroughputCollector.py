@@ -56,6 +56,10 @@ def eventCreator():
             data['destVO']=de[1]
         data['srcProduction']=siteMapping.isProductionThroughput(source)
         data['destProduction']=siteMapping.isProductionThroughput(destination)
+        if not 'datapoints'in m:
+            print 'no datapoints in this message!'
+            q.task_done()
+            return
         su=m['datapoints']
         for ts, th in su.iteritems():
             data['timestamp']=datetime.utcfromtimestamp(int(ts)).isoformat()

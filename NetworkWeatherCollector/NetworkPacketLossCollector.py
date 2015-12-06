@@ -55,6 +55,10 @@ def eventCreator():
             data['destVO']=de[1]
         data['srcProduction']=siteMapping.isProductionLatency(source)
         data['destProduction']=siteMapping.isProductionLatency(destination)
+        if not 'summaries'in m: 
+            q.task_done()
+            print "no summaries found in the message"
+            return
         su=m['summaries']
         # print su
         for s in su:
