@@ -59,7 +59,7 @@ def eventCreator():
         if not 'datapoints'in m:
             print 'no datapoints in this message!'
             q.task_done()
-            return
+            continue
         su=m['datapoints']
         for ts, th in su.iteritems():
             data['timestamp']=datetime.utcfromtimestamp(int(ts)).isoformat()

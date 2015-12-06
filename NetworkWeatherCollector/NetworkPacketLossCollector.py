@@ -58,7 +58,7 @@ def eventCreator():
         if not 'summaries'in m: 
             q.task_done()
             print "no summaries found in the message"
-            return
+            continue
         su=m['summaries']
         # print su
         for s in su:

@@ -1,5 +1,5 @@
 curl -XDELETE cl-analytics.mwt2.org:9200/_template/network_weather
-curl -XDELETE 'cl-analytics.mwt2.org:9200/network_weather_2*'
+curl -XDELETE 'cl-analytics.mwt2.org:9200/network_weather_2-*'
 
 curl -XPOST 'cl-analytics.mwt2.org:9200/_template/network_weather' -d '{
     "template" : "network_weather_2*",
@@ -88,7 +88,8 @@ curl -XPOST cl-analytics.mwt2.org:9200/_snapshot/cl_backup/ -d '
 }'
 
 
-curl -XPUT cl-analytics.mwt2.org:9200/_snapshot/cl_backup/snapshot_2015-10-05 -d '{"indices": "jobs_archive*" }'
+curl -XPUT cl-analytics.mwt2.org:9200/_snapshot/cl_backup/snapshot_2015-11-30 -d '{"indices": "jobs_archive*" }'
+curl -XPUT cl-analytics.mwt2.org:9200/_snapshot/cl_backup/snapshot_2015-11-30 
 
 rolling restart
 
@@ -107,7 +108,7 @@ curl -XPUT cl-analytics.mwt2.org:9200/_cluster/settings -d '
 }'
 
 
-curl -XPOST 'cl-analytics.mwt2.org:9200/_template/network_weather_2' -d '{
+curl -XPOST 'cl-analytics.mwt2.org:9200/_template/network_weather' -d '{
     "template" : "network_weather_2*",
     "settings" : {
         "number_of_shards" : 5,
