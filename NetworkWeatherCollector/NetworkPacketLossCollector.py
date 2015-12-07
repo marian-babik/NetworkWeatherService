@@ -57,7 +57,7 @@ def eventCreator():
         data['destProduction']=siteMapping.isProductionLatency(destination)
         if not 'summaries'in m: 
             q.task_done()
-            print "no summaries found in the message"
+            print threading.current_thread().name, "no summaries found in the message"
             continue
         su=m['summaries']
         # print su
@@ -72,7 +72,7 @@ def eventCreator():
         q.task_done()
         if len(aLotOfData)>100:
             res = helpers.bulk(es, aLotOfData)
-            print res
+            print threading.current_thread().name, "\t inserted:",res[0], '\tErrors:',res[1]
             aLotOfData=[]
 
 passfile = open('/afs/cern.ch/user/i/ivukotic/ATLAS-Hadoop/.passfile')

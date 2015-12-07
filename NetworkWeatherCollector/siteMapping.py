@@ -31,11 +31,15 @@ def getIP(host):
 
 
 def reload():
+    print 'starting mapping reload'
     global ot
     global throughputHosts
     global latencyHosts
     
-    ot=time.time()
+    timeout = 60
+    socket.setdefaulttimeout(timeout)
+    
+    ot=time.time()-86300 # in case it does not succeed in updating it will try again in 100 seconds.
     try:
         req = urllib2.Request("http://atlas-agis-api.cern.ch/request/site/query/list/?json&vo_name=atlas&state=ACTIVE", None)
         opener = urllib2.build_opener()
@@ -110,6 +114,8 @@ def reload():
         print "Could not get perfsonar latency hosts. Exiting..."
         print "Unexpected error: ", str(sys.exc_info()[0])
     
+    print 'All done.'
+    ot=time.time() # all updated so the next one will be in one day.
 
 def getPS(ip):
     global ot

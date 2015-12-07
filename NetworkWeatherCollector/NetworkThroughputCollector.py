@@ -57,7 +57,7 @@ def eventCreator():
         data['srcProduction']=siteMapping.isProductionThroughput(source)
         data['destProduction']=siteMapping.isProductionThroughput(destination)
         if not 'datapoints'in m:
-            print 'no datapoints in this message!'
+            print threading.current_thread().name, 'no datapoints in this message!'
             q.task_done()
             continue
         su=m['datapoints']
@@ -69,7 +69,7 @@ def eventCreator():
         q.task_done()
         if len(aLotOfData)>100:
             res = helpers.bulk(es, aLotOfData)
-            print res
+            print threading.current_thread().name, "\t inserted:",res[0], '\tErrors:',res[1]
             aLotOfData=[]
 
 passfile = open('/afs/cern.ch/user/i/ivukotic/ATLAS-Hadoop/.passfile')
