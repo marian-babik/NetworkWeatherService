@@ -70,10 +70,13 @@ def eventCreator():
                     # print data
                     aLotOfData.append(data)
         q.task_done()
-        if len(aLotOfData)>100:
-            res = helpers.bulk(es, aLotOfData)
-            print threading.current_thread().name, "\t inserted:",res[0], '\tErrors:',res[1]
-            aLotOfData=[]
+        if len(aLotOfData)>500:
+            try:
+                res = helpers.bulk(es, aLotOfData, raise_on_exception=False)
+                print threading.current_thread().name, "\t inserted:",res[0], '\tErrors:',res[1]
+                aLotOfData=[]
+            except:
+                print 'Something seriously wrong happened. ' 
 
 passfile = open('/afs/cern.ch/user/i/ivukotic/ATLAS-Hadoop/.passfile')
 passwd=passfile.read()
