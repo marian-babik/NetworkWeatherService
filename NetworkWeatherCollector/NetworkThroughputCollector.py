@@ -21,12 +21,26 @@ topic = '/topic/perfsonar.throughput'
 
 siteMapping.reload()
 
+lastReconnectionTime=0
+
 class MyListener(object):
     def on_error(self, headers, message):
         print 'received an error %s' % message
     def on_message(self, headers, message):
         # print message
         q.put(message)
+
+def GetESConnection(lastReconnectionTime):
+    if ( time.time()-lastReconnectionTime < 60 ): 
+        return
+    lastReconnectionTime=time.time()
+    print "make sure we are connected right..."
+    res = requests.get('http://cl-analytics.mwt2.org:9200')
+    print(res.content)
+    
+    es = Elasticsearch([{'host':'cl-analytics.mwt2.org', 'port':9200}])
+    return es
+
 
 def eventCreator():
     aLotOfData=[]
@@ -86,15 +100,9 @@ def eventCreator():
 passfile = open('/afs/cern.ch/user/i/ivukotic/ATLAS-Hadoop/.passfile')
 passwd=passfile.read()
 
-
-
-print "make sure we are connected right..."
-import requests
-res = requests.get('http://cl-analytics.mwt2.org:9200')
-print(res.content)
-
-es = Elasticsearch([{'host':'cl-analytics.mwt2.org', 'port':9200}])
-
+es = GetESConnection(lastReconnectionTime)
+while (not es):
+    es = GetESConnection(lastReconnectionTime)
 
 q=Queue.Queue()
 #start eventCreator threads

@@ -106,7 +106,6 @@ def eventCreator():
 passfile = open('/afs/cern.ch/user/i/ivukotic/ATLAS-Hadoop/.passfile')
 passwd=passfile.read()
 
-
 es = GetESConnection(lastReconnectionTime)
 while (not es):
     es = GetESConnection(lastReconnectionTime)
