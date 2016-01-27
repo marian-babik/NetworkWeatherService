@@ -22,6 +22,7 @@ topic = '/topic/perfsonar.histogram-owdelay'
 
 siteMapping.reload()
 
+global lastReconnectionTime
 lastReconnectionTime=0
 
 class MyListener(object):
