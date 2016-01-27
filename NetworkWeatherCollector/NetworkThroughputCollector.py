@@ -9,7 +9,7 @@ import urllib2
 
 import json
 from datetime import datetime
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, exceptions as es_exceptions
 from elasticsearch import helpers
 
 import stomp
@@ -72,6 +72,14 @@ def eventCreator():
                 res = helpers.bulk(es, aLotOfData, raise_on_exception=False)
                 print threading.current_thread().name, "\t inserted:",res[0], '\tErrors:',res[1]
                 aLotOfData=[]
+            except es_exceptions.ConnectionError as e:
+                print 'ConnectionError ', e
+            except es_exceptions.TransportError as e:
+                print 'TransportError ', e
+            except helpers.BulkIndexError as e:
+                print e[0]
+                for i in e[1]:
+                    print i 
             except:
                 print 'Something seriously wrong happened. ' 
 

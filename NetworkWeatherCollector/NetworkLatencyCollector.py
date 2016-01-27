@@ -6,10 +6,11 @@ import Queue, os, sys, time
 import threading
 from threading import Thread
 import urllib2
+import requests
 
 import json
 from datetime import datetime
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, exceptions as es_exceptions
 from elasticsearch import helpers
 
 import stomp
@@ -21,11 +22,25 @@ topic = '/topic/perfsonar.histogram-owdelay'
 
 siteMapping.reload()
 
+lastReconnectionTime=0
+
 class MyListener(object):
     def on_error(self, headers, message):
         print 'received an error %s' % message
     def on_message(self, headers, message):
         q.put(message)
+
+
+def GetESConnection():
+    if ( time.time()-lastReconnectionTime < 60 ): 
+        return
+    lastReconnectionTime=time.time()
+    print "make sure we are connected right..."
+    res = requests.get('http://cl-analytics.mwt2.org:9200')
+    print(res.content)
+    
+    es = Elasticsearch([{'host':'cl-analytics.mwt2.org', 'port':9200}])
+    return es
 
 def eventCreator():
     aLotOfData=[]
@@ -74,24 +89,27 @@ def eventCreator():
         q.task_done()
         if len(aLotOfData)>500:
             try:
-                res = helpers.bulk(es, aLotOfData, raise_on_exception=False)
+                res = helpers.bulk(es, aLotOfData, raise_on_exception=True)
                 print threading.current_thread().name, "\t inserted:",res[0], '\tErrors:',res[1]
                 aLotOfData=[]
+            except es_exceptions.ConnectionError as e:
+                print 'ConnectionError ', e
+            except es_exceptions.TransportError as e:
+                print 'TransportError ', e
+            except helpers.BulkIndexError as e:
+                print e[0]
+                for i in e[1]:
+                    print i 
             except:
-                print 'Something seriously wrong happened. ' 
+                print 'Something seriously wrong happened. '
 
 passfile = open('/afs/cern.ch/user/i/ivukotic/ATLAS-Hadoop/.passfile')
 passwd=passfile.read()
 
 
-
-print "make sure we are connected right..."
-import requests
-res = requests.get('http://cl-analytics.mwt2.org:9200')
-print(res.content)
-
-es = Elasticsearch([{'host':'cl-analytics.mwt2.org', 'port':9200}])
-
+es = GetESConnection()
+while (not es):
+    es = GetESConnection()
 
 q=Queue.Queue()
 #start eventCreator threads
