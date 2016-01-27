@@ -22,7 +22,6 @@ topic = '/topic/perfsonar.histogram-owdelay'
 
 siteMapping.reload()
 
-global lastReconnectionTime
 lastReconnectionTime=0
 
 class MyListener(object):
@@ -32,7 +31,7 @@ class MyListener(object):
         q.put(message)
 
 
-def GetESConnection():
+def GetESConnection(lastReconnectionTime):
     if ( time.time()-lastReconnectionTime < 60 ): 
         return
     lastReconnectionTime=time.time()
@@ -108,9 +107,9 @@ passfile = open('/afs/cern.ch/user/i/ivukotic/ATLAS-Hadoop/.passfile')
 passwd=passfile.read()
 
 
-es = GetESConnection()
+es = GetESConnection(lastReconnectionTime)
 while (not es):
-    es = GetESConnection()
+    es = GetESConnection(lastReconnectionTime)
 
 q=Queue.Queue()
 #start eventCreator threads
