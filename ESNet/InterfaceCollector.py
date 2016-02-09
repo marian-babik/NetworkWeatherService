@@ -166,7 +166,8 @@ def loader(i):
             for i in e[1]:
                 print i
         except:
-            print 'Something seriously wrong happened. '
+            e = sys.exc_info()[0]
+            print 'Something seriously wrong happened. ', e
         time.sleep(900)
 
 es = GetESConnection(lastReconnectionTime)
