@@ -42,7 +42,7 @@ def getInterfaces():
     return interfaces
     
 def getInterfaceData(i):
-    print ("Loading interface data for: ",i.name)
+    #print ("Loading interface data for: ",i.name)
     currenttime=int(time.time()*1000)
     link="https://my.es.net/api/v1/network_entity_interface/"
     link+=i.name+'/?'
@@ -88,7 +88,7 @@ def getInterfaceData(i):
     return res 
 
 def getFlowData(i):
-    print ("Loading flow data for: ",i.name)
+    #print ("Loading flow data for: ",i.name)
     currenttime=int(time.time()*1000)
     link="https://my.es.net/api/v1/network_entity_flow/"
     link+=i.name+'/?'
@@ -98,7 +98,7 @@ def getFlowData(i):
     i.lastFlowUpdate = currenttime
     res=[]
     try:
-        print(link)
+        #print(link)
         req = requests.get(link)
         if (req.status_code>299): print ("problem: ", i.name, "\treturned:", req.status_code)
         j=req.json()
