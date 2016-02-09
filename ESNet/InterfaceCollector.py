@@ -125,9 +125,6 @@ def getFlowData(i):
                 data['direction']='out'
                 data['rate']=sample[1]
                 res.append(data.copy())
-        print ("flow results: ", len(res))
-        for c in res:
-            print c
         return res
     except:
         print ("Unexpected error: ", sys.exc_info()[0])
