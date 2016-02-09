@@ -148,7 +148,9 @@ def loader(i):
     print ("starting a thread for ", i.name)
     while(True):
         aLotOfData=getInterfaceData(i)
-        aLotOfData.append(getFlowData(i))
+        fd=getFlowData(i)
+        if len(fd): 
+            aLotOfData.append(fd)
         try:
             res = helpers.bulk(es, aLotOfData, raise_on_exception=True)
             print (i.name, "\t inserted:",res[0], '\tErrors:',res[1])
