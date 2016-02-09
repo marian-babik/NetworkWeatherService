@@ -126,6 +126,8 @@ def getFlowData(i):
                 data['rate']=sample[1]
                 res.append(data.copy())
         print ("flow results: ", len(res))
+        for c in res:
+            print c
         return res
             
     except:
