@@ -129,9 +129,8 @@ def getFlowData(i):
         for c in res:
             print c
         return res
-            
     except:
-        print ("Unexpected error:", sys.exc_info()[0])
+        print ("Unexpected error: ", sys.exc_info()[0])
     return res 
 
 def GetESConnection(lastReconnectionTime):
@@ -150,9 +149,7 @@ def loader(i):
     print ("starting a thread for ", i.name)
     while(True):
         aLotOfData=getInterfaceData(i)
-        fd=getFlowData(i)
-        if len(fd): 
-            aLotOfData.append(fd)
+        aLotOfData.extend(getFlowData(i))
         try:
             res = helpers.bulk(es, aLotOfData, raise_on_exception=True)
             print (i.name, "\t inserted:",res[0], '\tErrors:',res[1])
@@ -166,7 +163,7 @@ def loader(i):
             for i in e[1]:
                 print i
         except:
-            print 'Something seriously wrong happened. ', sys.exc_info()[0]
+            print ('Something seriously wrong happened. ', sys.exc_info()[0])
         time.sleep(900)
 
 es = GetESConnection(lastReconnectionTime)
