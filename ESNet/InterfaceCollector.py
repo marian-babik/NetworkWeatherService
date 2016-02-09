@@ -17,7 +17,8 @@ class interface:
         self.name=name
         self.has_flow=has_flow
         self.tags=tags
-        self.lastupdate=int(time.time()*1000)
+        self.lastInterfaceUpdate=int(time.time()*1000)
+        self.lastFlowUpdate=int(time.time()*1000)
     def prnt(self):
         print ('interface: ', self.name, '\tflow: ', self.has_flow, '\t tags:', self.tags)
         
@@ -40,20 +41,20 @@ def getInterfaces():
         i.prnt()
     return interfaces
     
-def getData(i):
-    print ("Loading data for: ",i.name)
+def getInterfaceData(i):
+    print ("Loading interface data for: ",i.name)
     currenttime=int(time.time()*1000)
     link="https://my.es.net/api/v1/network_entity_interface/"
     link+=i.name+'/?'
     link+="end_time="+str(currenttime) + '&'
-    link+="start_time="+str(i.lastupdate)
+    link+="start_time="+str(i.lastInterfaceUpdate)
     link+='&frequency=30000&format=json'
-    i.lastupdate = currenttime
+    i.lastInterfaceUpdate = currenttime
     res=[]
     try:
         #print(link)
         req = requests.get(link)
-        print (i.name, req.status_code)
+        if (req.status_code>299): print ("problem: ", i.name, "\treturned:", req.status_code)
         j=req.json()
         
         d = datetime.now()
@@ -68,6 +69,50 @@ def getData(i):
             data['device']=s["device"]
             data['interface']=s["interface"]
             data['description']=s["description"]
+            chin=s["channels"]["in"]["samples"]
+            for sample in chin:
+                data['timestamp']=sample[0]
+                data['direction']='in'
+                data['rate']=sample[1]
+                res.append(data.copy())
+            chout=s["channels"]["out"]["samples"]
+            for sample in chout:
+                data['timestamp']=sample[0]
+                data['direction']='out'
+                data['rate']=sample[1]
+                res.append(data.copy())
+        return res
+            
+    except:
+        print ("Unexpected error:", sys.exc_info()[0])
+    return res 
+
+def getFlowData(i):
+    print ("Loading interface data for: ",i.name)
+    currenttime=int(time.time()*1000)
+    link="https://my.es.net/api/v1/network_entity_flow/"
+    link+=i.name+'/?'
+    link+="end_time="+str(currenttime) + '&'
+    link+="start_time="+str(i.lastFlowUpdate)
+    link+='&breakdown=vpnsite&format=json'
+    i.lastFlowUpdate = currenttime
+    res=[]
+    try:
+        #print(link)
+        req = requests.get(link)
+        if (req.status_code>299): print ("problem: ", i.name, "\treturned:", req.status_code)
+        j=req.json()
+        
+        d = datetime.now()
+        ind="esnet-"+str(d.year)+"."+str(d.month)+"."+str(d.day)
+        data = {
+            '_index': ind,
+            '_type': 'flow',
+            'site1': i.name.replace("ATLAS-","")
+        }
+
+        for s in j["objects"]:
+            data['site2']=s["name"].split("(")[0]
             chin=s["channels"]["in"]["samples"]
             for sample in chin:
                 data['timestamp']=sample[0]
@@ -101,10 +146,11 @@ def GetESConnection(lastReconnectionTime):
 def loader(i):
     print ("starting a thread for ", i.name)
     while(True):
-        aLotOfData=getData(i)
+        aLotOfData=getInterfaceData(i)
+        aLotOfData.append(getFlowData(i))
         try:
             res = helpers.bulk(es, aLotOfData, raise_on_exception=True)
-            print threading.current_thread().name, "\t inserted:",res[0], '\tErrors:',res[1]
+            print (i.name, "\t inserted:",res[0], '\tErrors:',res[1])
             aLotOfData=[]
         except es_exceptions.ConnectionError as e:
             print 'ConnectionError ', e
