@@ -104,7 +104,7 @@ def getFlowData(i):
         j=req.json()
         
         d = datetime.now()
-        ind="esnet-"+str(d.year)+"."+str(d.month)+"."+str(d.day)
+        ind="esnet-"+str(d.year)+"."+str(d.month)
         data = {
             '_index': ind,
             '_type': 'flow',
@@ -140,7 +140,10 @@ def GetESConnection(lastReconnectionTime):
     
     es = Elasticsearch([{'host':'cl-analytics.mwt2.org', 'port':9200}])
     return es
+    
 
+es1 = Elasticsearch([{'host':'es-atlas.cern.ch', 'port':9202}],http_auth=('es-atlas', 'pass'), timeout=600)
+    
 
 def loader(i):
     print ("starting a thread for ", i.name)
@@ -150,17 +153,34 @@ def loader(i):
         try:
             res = helpers.bulk(es, aLotOfData, raise_on_exception=True)
             print (i.name, "\t inserted:",res[0], '\tErrors:',res[1])
+        except es_exceptions.ConnectionError as e:
+            print 'ConnectionError ', e
+        except es_exceptions.TransportError as e:
+            print 'TransportError ', e
+        except helpers.BulkIndexError as e:
+            print e
+            # for i in e[1]:
+                # print i
+        except:
+            print ('Something seriously wrong happened indexing at UC. ', sys.exc_info()[0])
+        
+        try:
+            res = helpers.bulk(es1, aLotOfData, raise_on_exception=True)
+            print (i.name, "\t inserted:",res[0], '\tErrors:',res[1])
             aLotOfData=[]
         except es_exceptions.ConnectionError as e:
             print 'ConnectionError ', e
         except es_exceptions.TransportError as e:
             print 'TransportError ', e
         except helpers.BulkIndexError as e:
-            print e[0]
-            for i in e[1]:
-                print i
+            print e
+            # for i in e[1]:
+                # print i
         except:
-            print ('Something seriously wrong happened. ', sys.exc_info()[0])
+            print ('Something seriously wrong happened indexing at CERN. ', sys.exc_info()[0])
+        
+        aLotOfData=[]
+        
         time.sleep(900)
 
 es = GetESConnection(lastReconnectionTime)

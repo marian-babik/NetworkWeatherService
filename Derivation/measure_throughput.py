@@ -8,10 +8,10 @@ import math
 
 debug = 0
 if len(sys.argv) == 2:
-    date = "2015-10-%d" % int(sys.argv[1])
+    date = "2016.2.%d" % int(sys.argv[1])
 else:
-    date = "2015-10-19"
-nw_index = "network_weather-" + date
+    date = "2016.2.19"
+nw_index = "network_weather-2-" + date
 
 def max_throughput(time_a, time_b, mean_packet_loss):
     # Expected TCP segment size limit: 1500 octets
@@ -80,10 +80,10 @@ for s_name in usrcs[:40]:
                     "filter":{
                         "and": [
                             {
-                                "term":{ "@message.srcSite":s_name }
+                                "term":{ "srcSite":s_name }
                             },
                             {
-                                "term":{ "@message.destSite":d_name }
+                                "term":{ "destSite":d_name }
                             }
                         ]
                     }
