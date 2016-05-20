@@ -1,3 +1,7 @@
+"""Errors thrown by stomp.py connections.
+"""
+
+
 class ConnectionClosedException(Exception):
     """
     Raised in the receiver thread when the connection has been closed
@@ -8,20 +12,19 @@ class ConnectionClosedException(Exception):
 
 class NotConnectedException(Exception):
     """
-    Raised by Connection.__send_frame when there is currently no server
-    connection.
+    Raised when there is currently no server connection.
     """
     pass
 
 
 class ConnectFailedException(Exception):
     """
-    Raised by Connection.__attempt_connection when reconnection attempts
+    Raised by Connection.attempt_connection when reconnection attempts
     have exceeded Connection.__reconnect_attempts_max.
     """
 
 
-class ProtocolException(Exception):
+class InterruptedException(Exception):
     """
-    Raised on a protocol violation.
+    Raised by receive when data read is interrupted.
     """
