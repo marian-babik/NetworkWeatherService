@@ -26,7 +26,7 @@ lastReconnectionTime=0
 
 class MyListener(object):
     def on_error(self, headers, message):
-        print 'received an error %s' % message
+        print('received an error %s' % message)
     def on_message(self, headers, message):
         q.put(message)
 
