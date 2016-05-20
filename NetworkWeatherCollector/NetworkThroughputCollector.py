@@ -2,7 +2,7 @@
 
 import siteMapping
 
-import queue, os, sys, time
+import Queue, os, sys, time
 import threading
 from threading import Thread
 import requests
@@ -104,7 +104,7 @@ es = GetESConnection(lastReconnectionTime)
 while (not es):
     es = GetESConnection(lastReconnectionTime)
 
-q=queue.Queue()
+q=Queue.Queue()
 #start eventCreator threads
 for i in range(1):
      t = Thread(target=eventCreator)
