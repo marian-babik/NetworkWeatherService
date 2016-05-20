@@ -2,7 +2,7 @@
 
 import siteMapping
 
-import Queue, os, sys, time
+import queue, os, sys, time
 import threading
 from threading import Thread
 import urllib2
@@ -26,16 +26,16 @@ lastReconnectionTime=0
 
 class MyListener(object):
     def on_error(self, headers, message):
-        print 'received an error %s' % message
+        print ('received an error %s' % message)
     def on_message(self, headers, message):
-        # print message
+        # print (message)
         q.put(message)
 
 def GetESConnection(lastReconnectionTime):
     if ( time.time()-lastReconnectionTime < 60 ): 
         return
     lastReconnectionTime=time.time()
-    print "make sure we are connected right..."
+    print("make sure we are connected right...")
     res = requests.get('http://cl-analytics.mwt2.org:9200')
     print(res.content)
     
@@ -72,31 +72,31 @@ def eventCreator():
         data['srcProduction']=siteMapping.isProductionThroughput(source)
         data['destProduction']=siteMapping.isProductionThroughput(destination)
         if not 'datapoints'in m:
-            print threading.current_thread().name, 'no datapoints in this message!'
+            print(threading.current_thread().name, 'no datapoints in this message!')
             q.task_done()
             continue
         su=m['datapoints']
         for ts, th in su.iteritems():
             data['timestamp']=datetime.utcfromtimestamp(int(ts)).isoformat()
             data['throughput']=th
-            #print data
+            #print(data)
             aLotOfData.append(data)
         q.task_done()
         if len(aLotOfData)>100:
             try:
                 res = helpers.bulk(es, aLotOfData, raise_on_exception=False)
-                print threading.current_thread().name, "\t inserted:",res[0], '\tErrors:',res[1]
+                print (threading.current_thread().name, "\t inserted:",res[0], '\tErrors:',res[1])
                 aLotOfData=[]
             except es_exceptions.ConnectionError as e:
-                print 'ConnectionError ', e
+                print('ConnectionError ', e)
             except es_exceptions.TransportError as e:
-                print 'TransportError ', e
+                print('TransportError ', e)
             except helpers.BulkIndexError as e:
-                print e[0]
-                for i in e[1]:
-                    print i 
+                print(e[0])
+                #for i in e[1]:
+                #    print(i) 
             except:
-                print 'Something seriously wrong happened. ' 
+                print('Something seriously wrong happened. ') 
 
 passfile = open('/afs/cern.ch/user/i/ivukotic/ATLAS-Hadoop/.passfile')
 passwd=passfile.read()
@@ -105,7 +105,7 @@ es = GetESConnection(lastReconnectionTime)
 while (not es):
     es = GetESConnection(lastReconnectionTime)
 
-q=Queue.Queue()
+q=queue.Queue()
 #start eventCreator threads
 for i in range(1):
      t = Thread(target=eventCreator)
@@ -120,5 +120,5 @@ for host in allhosts:
     conn.subscribe(destination = topic, ack = 'auto', id="1", headers = {})
 
 while(True):
-    print "qsize:", q.qsize()
+    print("qsize:", q.qsize())
     time.sleep(60)

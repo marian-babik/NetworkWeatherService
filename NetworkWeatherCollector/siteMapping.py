@@ -19,19 +19,19 @@ class ps:
     ip=''
     flavor=''
     def prnt(self):
-        print 'ip:',self.ip,'\thost:',self.hostname,'\tVO:',self.VO,'\tflavor:',self.flavor
+        print('ip:',self.ip,'\thost:',self.hostname,'\tVO:',self.VO,'\tflavor:',self.flavor)
 
 def getIP(host):
     ip='unknown'
     try:
         ip=socket.gethostbyname(host)
     except:
-        print "Could not get ip for", host
+        print("Could not get ip for", host)
     return ip
 
 
 def reload():
-    print 'starting mapping reload'
+    print('starting mapping reload')
     global ot
     global throughputHosts
     global latencyHosts
@@ -48,11 +48,11 @@ def reload():
         sites=[]
         for s in res:
             sites.append(s["rc_site"])
-        # print res
-        print 'Sites reloaded.'
+        # print(res)
+        print('Sites reloaded.')
     except:
-        print "Could not get sites from AGIS. Exiting..."
-        print "Unexpected error: ", str(sys.exc_info()[0])
+        print ("Could not get sites from AGIS. Exiting...")
+        print ("Unexpected error: ", str(sys.exc_info()[0]))
 
         
     try:
@@ -71,10 +71,10 @@ def reload():
             sites.append(s["rc_site"])
             PerfSonars[p.ip]=p
             p.prnt()
-        print 'Perfsonars reloaded.'
+        print('Perfsonars reloaded.')
     except:
-        print "Could not get perfsonars from AGIS. Exiting..."
-        print "Unexpected error: ", str(sys.exc_info()[0])
+        print ("Could not get perfsonars from AGIS. Exiting...")
+        print ("Unexpected error: ", str(sys.exc_info()[0]))
     
     try:
         req = urllib2.Request("https://myosg.grid.iu.edu/psmesh/json/name/wlcg-all", None)
@@ -86,14 +86,14 @@ def reload():
             for s in o['sites']:
                 for h in s['hosts']:
                     for a in h['addresses']:
-                        print a
+                        print(a)
                         ip=getIP(a)
                         if ip!='unknown': throughputHosts.append(ip)
-        print throughputHosts
-        print 'throughputHosts reloaded.'
+        print(throughputHosts)
+        print('throughputHosts reloaded.')
     except:
-        print "Could not get perfsonar throughput hosts. Exiting..."
-        print "Unexpected error: ", str(sys.exc_info()[0])
+        print("Could not get perfsonar throughput hosts. Exiting...")
+        print("Unexpected error: ", str(sys.exc_info()[0]))
         
     try:
         req = urllib2.Request("https://myosg.grid.iu.edu/psmesh/json/name/wlcg-latency-all", None)
@@ -105,22 +105,22 @@ def reload():
             for s in o['sites']:
                 for h in s['hosts']:
                     for a in h['addresses']:
-                        print a
+                        print(a)
                         ip=getIP(a)
                         if ip!='unknown': latencyHosts.append(ip)
-        print latencyHosts
-        print 'latencyHosts reloaded.'
+        print(latencyHosts)
+        print('latencyHosts reloaded.')
     except:
-        print "Could not get perfsonar latency hosts. Exiting..."
-        print "Unexpected error: ", str(sys.exc_info()[0])
+        print("Could not get perfsonar latency hosts. Exiting...")
+        print("Unexpected error: ", str(sys.exc_info()[0]))
     
-    print 'All done.'
+    print('All done.')
     ot=time.time() # all updated so the next one will be in one day.
 
 def getPS(ip):
     global ot
     if (time.time()-ot)>86400: 
-        print ot
+        print(ot)
         reload()
     if ip in PerfSonars:
         return [PerfSonars[ip].sitename,PerfSonars[ip].VO]
