@@ -12,6 +12,15 @@ from elasticsearch import helpers
 
 lastReconnectionTime=0
 
+esserver=sys.argv[1]
+auth = None
+timeout=10
+
+if len(sys.argv)>=4:
+	auth = (sys.argv[2], sys.argv[3]) #es-atlas, pass
+if len(sys.argv)==5:
+	timeout = sys.argv[4] #600
+
 class interface:
     def __init__(self, name, has_flow, tags):
         self.name=name
@@ -134,15 +143,13 @@ def GetESConnection(lastReconnectionTime):
     if ( time.time()-lastReconnectionTime < 60 ): 
         return
     lastReconnectionTime=time.time()
-    print "make sure we are connected right..."
-    res = requests.get('http://cl-analytics.mwt2.org:9200')
+    print ("make sure we are connected right...")
+    res = requests.get('http://' + esserver)
     print(res.content)
     
-    es = Elasticsearch([{'host':'cl-analytics.mwt2.org', 'port':9200}])
+    es = Elasticsearch([{'host': esserver}],http_auth=auth,timeout=timeout)
     return es
-    
 
-#es1 = Elasticsearch([{'host':'es-atlas.cern.ch', 'port':9202}],http_auth=('es-atlas', 'pass'), timeout=600)
     
 
 def loader(i):
@@ -155,31 +162,15 @@ def loader(i):
             aLotOfData=[]
             print (i.name, "\t inserted:",res[0], '\tErrors:',res[1])
         except es_exceptions.ConnectionError as e:
-            print 'ConnectionError ', e
+            print ('ConnectionError ', e)
         except es_exceptions.TransportError as e:
-            print 'TransportError ', e
+            print ('TransportError ', e)
         except helpers.BulkIndexError as e:
-            print e
+            print (e)
             # for i in e[1]:
                 # print i
         except:
-            print ('Something seriously wrong happened indexing at UC. ', sys.exc_info()[0])
-        
-#        try:
-#            res = helpers.bulk(es1, aLotOfData, raise_on_exception=True)
-#            print (i.name, "\t inserted:",res[0], '\tErrors:',res[1])
-#        except es_exceptions.ConnectionError as e:
-#            print 'ConnectionError ', e
-#        except es_exceptions.TransportError as e:
-#            print 'TransportError ', e
-#        except helpers.BulkIndexError as e:
-#            print e
-#            # for i in e[1]:
-#                # print i
-#        except:
-#            print ('Something seriously wrong happened indexing at CERN. ', sys.exc_info()[0])
-#        
-#        aLotOfData=[]
+            print ('Something seriously wrong happened indexing. ', sys.exc_info()[0])
         
         time.sleep(900)
 
@@ -196,5 +187,5 @@ for i in interfaces:
      t.start()
 
 while(True):
-    print "All OK ..."
+    print ("All OK ...")
     time.sleep(900)

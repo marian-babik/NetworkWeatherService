@@ -1,2 +1,2 @@
-FROM python:3
-CMD [ "python", "./InterfaceCollector.py" ]
+FROM python:3-onbuild
+ENTRYPOINT [ "python", "./InterfaceCollector.py" ]
