@@ -5,7 +5,6 @@ import siteMapping
 import queue, os, sys, time
 import threading
 from threading import Thread
-import urllib2
 import requests
 
 import json

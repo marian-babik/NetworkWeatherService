@@ -1,6 +1,6 @@
 # maps ips to sites
 
-import urllib2, sys
+import requests, sys
 import socket
 import time
 
@@ -41,10 +41,8 @@ def reload():
     
     ot=time.time()-86300 # in case it does not succeed in updating it will try again in 100 seconds.
     try:
-        req = urllib2.Request("http://atlas-agis-api.cern.ch/request/site/query/list/?json&vo_name=atlas&state=ACTIVE", None)
-        opener = urllib2.build_opener()
-        f = opener.open(req)
-        res = json.load(f)
+        r=requests.get('http://atlas-agis-api.cern.ch/request/site/query/list/?json&vo_name=atlas&state=ACTIVE')
+        res = r.json()
         sites=[]
         for s in res:
             sites.append(s["rc_site"])
@@ -56,10 +54,8 @@ def reload():
 
         
     try:
-        req = urllib2.Request("http://atlas-agis-api.cern.ch/request/service/query/list/?json&state=ACTIVE&type=PerfSonar", None)
-        opener = urllib2.build_opener()
-        f = opener.open(req)
-        res = json.load(f)
+        r=requests.get('http://atlas-agis-api.cern.ch/request/service/query/list/?json&state=ACTIVE&type=PerfSonar')
+        res = r.json()
         for s in res:
             p=ps()
             p.hostname=s['endpoint']
@@ -77,10 +73,8 @@ def reload():
         print ("Unexpected error: ", str(sys.exc_info()[0]))
     
     try:
-        req = urllib2.Request("https://myosg.grid.iu.edu/psmesh/json/name/wlcg-all", None)
-        opener = urllib2.build_opener()
-        f = opener.open(req)
-        res = json.load(f)
+        r=requests.get('https://myosg.grid.iu.edu/psmesh/json/name/wlcg-all')
+        res = r.json()
         throughputHosts=[]
         for o in res['organizations']:
             for s in o['sites']:
@@ -96,10 +90,8 @@ def reload():
         print("Unexpected error: ", str(sys.exc_info()[0]))
         
     try:
-        req = urllib2.Request("https://myosg.grid.iu.edu/psmesh/json/name/wlcg-latency-all", None)
-        opener = urllib2.build_opener()
-        f = opener.open(req)
-        res = json.load(f)
+        r=requests.get('https://myosg.grid.iu.edu/psmesh/json/name/wlcg-latency-all')
+        res = r.json()
         latencyHosts=[]
         for o in res['organizations']:
             for s in o['sites']:
