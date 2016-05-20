@@ -13,15 +13,15 @@ try:
 except ImportError:
     from io import StringIO
 
-try:
-    import ssl
-    from ssl import SSLError
-    DEFAULT_SSL_VERSION = ssl.PROTOCOL_SSLv3
-except ImportError: # python version < 2.6 without the backported ssl module
-    ssl = None
-    class SSLError:
-        pass
-    DEFAULT_SSL_VERSION = None
+#try:
+#    import ssl
+#    from ssl import SSLError
+#    DEFAULT_SSL_VERSION = ssl.PROTOCOL_SSLv3
+#except ImportError: # python version < 2.6 without the backported ssl module
+ssl = None
+class SSLError:
+    pass
+DEFAULT_SSL_VERSION = None
 
 try:
     from socket import SOL_SOCKET, SO_KEEPALIVE
