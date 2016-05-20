@@ -142,7 +142,7 @@ def GetESConnection(lastReconnectionTime):
     return es
     
 
-es1 = Elasticsearch([{'host':'es-atlas.cern.ch', 'port':9202}],http_auth=('es-atlas', 'pass'), timeout=600)
+#es1 = Elasticsearch([{'host':'es-atlas.cern.ch', 'port':9202}],http_auth=('es-atlas', 'pass'), timeout=600)
     
 
 def loader(i):
@@ -152,6 +152,7 @@ def loader(i):
         aLotOfData.extend(getFlowData(i))
         try:
             res = helpers.bulk(es, aLotOfData, raise_on_exception=True)
+            aLotOfData=[]
             print (i.name, "\t inserted:",res[0], '\tErrors:',res[1])
         except es_exceptions.ConnectionError as e:
             print 'ConnectionError ', e
@@ -164,22 +165,21 @@ def loader(i):
         except:
             print ('Something seriously wrong happened indexing at UC. ', sys.exc_info()[0])
         
-        try:
-            res = helpers.bulk(es1, aLotOfData, raise_on_exception=True)
-            print (i.name, "\t inserted:",res[0], '\tErrors:',res[1])
-            aLotOfData=[]
-        except es_exceptions.ConnectionError as e:
-            print 'ConnectionError ', e
-        except es_exceptions.TransportError as e:
-            print 'TransportError ', e
-        except helpers.BulkIndexError as e:
-            print e
-            # for i in e[1]:
-                # print i
-        except:
-            print ('Something seriously wrong happened indexing at CERN. ', sys.exc_info()[0])
-        
-        aLotOfData=[]
+#        try:
+#            res = helpers.bulk(es1, aLotOfData, raise_on_exception=True)
+#            print (i.name, "\t inserted:",res[0], '\tErrors:',res[1])
+#        except es_exceptions.ConnectionError as e:
+#            print 'ConnectionError ', e
+#        except es_exceptions.TransportError as e:
+#            print 'TransportError ', e
+#        except helpers.BulkIndexError as e:
+#            print e
+#            # for i in e[1]:
+#                # print i
+#        except:
+#            print ('Something seriously wrong happened indexing at CERN. ', sys.exc_info()[0])
+#        
+#        aLotOfData=[]
         
         time.sleep(900)
 
