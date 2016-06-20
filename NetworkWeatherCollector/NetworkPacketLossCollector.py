@@ -6,7 +6,7 @@ import Queue, os, sys, time
 import threading
 from threading import Thread
 import requests
-
+import copy
 import json
 from datetime import datetime
 from elasticsearch import Elasticsearch, exceptions as es_exceptions
@@ -82,7 +82,7 @@ def eventCreator():
                     data['timestamp']=datetime.utcfromtimestamp(r[0]).isoformat()
                     data['packet_loss']=r[1]
                     # print(data)
-                    aLotOfData.append(data)
+                    aLotOfData.append(copy.copy(data))
         q.task_done()
         if len(aLotOfData)>500:
             try:

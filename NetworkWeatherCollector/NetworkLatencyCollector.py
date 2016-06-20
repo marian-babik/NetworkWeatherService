@@ -6,6 +6,7 @@ import Queue, os, sys, time
 import threading
 from threading import Thread
 import requests
+import copy
 
 import json
 from datetime import datetime
@@ -77,14 +78,14 @@ def eventCreator():
         for s in su:
             if s['summary_window']=='300' and s['summary_type']=='statistics':
                 results=s['summary_data']
-                # print(results)
+                #print(results)
                 for r in results:
                     data['timestamp']=datetime.utcfromtimestamp(r[0]).isoformat()
                     data['delay_mean']=r[1]['mean']
                     data['delay_median']=r[1]['median']
                     data['delay_sd']=r[1]['standard-deviation']
                     #print(data)
-                    aLotOfData.append(data)
+                    aLotOfData.append(copy.copy(data))
         q.task_done()
         if len(aLotOfData)>500:
             try:
