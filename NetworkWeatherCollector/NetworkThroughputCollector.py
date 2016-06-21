@@ -83,7 +83,7 @@ def eventCreator():
         q.task_done()
         if len(aLotOfData)>100:
             try:
-                res = helpers.bulk(es, aLotOfData, raise_on_exception=False)
+                res = helpers.bulk(es, aLotOfData, raise_on_exception=False,request_timeout=60)
                 print (threading.current_thread().name, "\t inserted:",res[0], '\tErrors:',res[1])
                 aLotOfData=[]
             except es_exceptions.ConnectionError as e:
