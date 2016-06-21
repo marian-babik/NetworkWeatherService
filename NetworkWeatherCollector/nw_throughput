@@ -8,20 +8,19 @@
 # Source init functions
 . /etc/rc.d/init.d/functions
  
- 
-title="packet_loss"
+
 prog="NetworkThroughputCollector.py"
 prefix="/afs/cern.ch/user/i/ivukotic/NetworkWeatherService/NetworkWeatherCollector"
 exec_prefix="${prefix}"
 prog_bin="${exec_prefix}/${prog}"
  
-PIDFILE="/var/run/${prog}-${title}.pid"
+PIDFILE="/var/run/${prog}.pid"
  
 start()
 {
        [ -f $PIDFILE ] && echo "Already started" && exit
-       echo -n $"Starting $prog-$title: "
-       nohup $prog_bin 2>&1 > /var/log/${prog}-${title}.log & echo $! > $PIDFILE
+       echo -n $"Starting $prog: "
+       nohup $prog_bin 2>&1 > /var/log/${prog}.log & echo $! > $PIDFILE
        daemon --pidfile $PIDFILE
        [ -f $PIDFILE ] && success $"$prog-$title startup" || failure $"$prog-$title startup"
        echo
