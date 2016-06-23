@@ -24,11 +24,17 @@ siteMapping.reload()
 
 lastReconnectionTime=0
 
+#mids={}
 class MyListener(object):
     def on_error(self, headers, message):
         print('received an error %s' % message)
     def on_message(self, headers, message):
         q.put(message)
+#        id=headers['message-id']
+#        if id in mids:
+#            print (headers, message)
+#        else:
+#            mids[id]=True
 
 
 def GetESConnection(lastReconnectionTime):
