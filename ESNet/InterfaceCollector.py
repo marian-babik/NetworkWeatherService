@@ -12,14 +12,15 @@ from elasticsearch import helpers
 
 lastReconnectionTime=0
 
-esserver=sys.argv[1]
+ESserver=sys.argv[1]
+ESport=int(sys.argv[2])
 auth = None
 timeout=10
 
-if len(sys.argv)>=4:
-	auth = (sys.argv[2], sys.argv[3]) #es-atlas, pass
-if len(sys.argv)==5:
-	timeout = sys.argv[4] #600
+if len(sys.argv)>=5:
+	auth = (sys.argv[3], sys.argv[4]) #es-atlas, pass
+if len(sys.argv)==6:
+	timeout = sys.argv[5] #600
 
 class interface:
     def __init__(self, name, has_flow, tags):
@@ -144,10 +145,10 @@ def GetESConnection(lastReconnectionTime):
         return
     lastReconnectionTime=time.time()
     print ("make sure we are connected right...")
-    res = requests.get('http://' + esserver)
+    res = requests.get('http://' + ESserver + ':' + str(ESport))
     print(res.content)
     
-    es = Elasticsearch([{'host': esserver}],http_auth=auth,timeout=timeout)
+    es = Elasticsearch([{'host': ESserver, 'port': ESport} ],http_auth=auth,timeout=timeout)
     return es
 
     
