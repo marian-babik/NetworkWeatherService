@@ -6,6 +6,7 @@ import Queue, os, sys, time
 import threading
 from threading import Thread
 import requests
+import copy
 
 import json
 from datetime import datetime
@@ -23,11 +24,17 @@ siteMapping.reload()
 
 lastReconnectionTime=0
 
+#mids={}
 class MyListener(object):
     def on_error(self, headers, message):
         print('received an error %s' % message)
     def on_message(self, headers, message):
         q.put(message)
+#        id=headers['message-id']
+#        if id in mids:
+#            print (headers, message)
+#        else:
+#            mids[id]=True
 
 
 def GetESConnection(lastReconnectionTime):
@@ -77,18 +84,18 @@ def eventCreator():
         for s in su:
             if s['summary_window']=='300' and s['summary_type']=='statistics':
                 results=s['summary_data']
-                # print(results)
+                #print(results)
                 for r in results:
                     data['timestamp']=datetime.utcfromtimestamp(r[0]).isoformat()
                     data['delay_mean']=r[1]['mean']
                     data['delay_median']=r[1]['median']
                     data['delay_sd']=r[1]['standard-deviation']
                     #print(data)
-                    aLotOfData.append(data)
+                    aLotOfData.append(copy.copy(data))
         q.task_done()
         if len(aLotOfData)>500:
             try:
-                res = helpers.bulk(es, aLotOfData, raise_on_exception=True)
+                res = helpers.bulk(es, aLotOfData, raise_on_exception=True,request_timeout=60)
                 print(threading.current_thread().name, "\t inserted:",res[0], '\tErrors:',res[1])
                 aLotOfData=[]
             except es_exceptions.ConnectionError as e:

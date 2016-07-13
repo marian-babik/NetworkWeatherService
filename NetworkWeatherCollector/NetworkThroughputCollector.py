@@ -6,7 +6,7 @@ import Queue, os, sys, time
 import threading
 from threading import Thread
 import requests
-
+import copy
 import json
 from datetime import datetime
 from elasticsearch import Elasticsearch, exceptions as es_exceptions
@@ -79,11 +79,11 @@ def eventCreator():
             data['timestamp']=datetime.utcfromtimestamp(int(ts)).isoformat()
             data['throughput']=th
             #print(data)
-            aLotOfData.append(data)
+            aLotOfData.append(copy.copy(data))
         q.task_done()
         if len(aLotOfData)>100:
             try:
-                res = helpers.bulk(es, aLotOfData, raise_on_exception=False)
+                res = helpers.bulk(es, aLotOfData, raise_on_exception=False,request_timeout=60)
                 print (threading.current_thread().name, "\t inserted:",res[0], '\tErrors:',res[1])
                 aLotOfData=[]
             except es_exceptions.ConnectionError as e:
