@@ -8,6 +8,7 @@ try: import simplejson as json
 except ImportError: import json
 
 ot=0
+meshes=[]
 PerfSonars={}
 throughputHosts=[]
 latencyHosts=[]
@@ -72,39 +73,81 @@ def reload():
         print ("Could not get perfsonars from AGIS. Exiting...")
         print ("Unexpected error: ", str(sys.exc_info()[0]))
     
+    # loading meshes ===================================
+    
     try:
-        r=requests.get('https://myosg.grid.iu.edu/psmesh/json/name/wlcg-all')
+        r=requests.get('http://myosg.grid.iu.edu/psmesh/all')
         res = r.json()
-        throughputHosts=[]
-        for o in res['organizations']:
-            for s in o['sites']:
-                for h in s['hosts']:
-                    for a in h['addresses']:
-                        print(a)
-                        ip=getIP(a)
-                        if ip!='unknown': throughputHosts.append(ip)
-        print(throughputHosts)
-        print('throughputHosts reloaded.')
+        for r in res:
+            meshes.append(r['include'][0])
+        print ('All defined meshes:', meshes)
     except:
-        print("Could not get perfsonar throughput hosts. Exiting...")
-        print("Unexpected error: ", str(sys.exc_info()[0]))
+        print ("Could not load meshes  Exiting...")
+        print ("Unexpected error: ", str(sys.exc_info()[0]))    
+    
+
+    throughputHosts=[]
+    latencyHosts=[]
+    for m in meshes:
+        print('Loading mesh:', m)
+        try:
+            r=requests.get(m)
+            res = r.json()
+            for o in res['organizations']:
+                for s in o['sites']:
+                    for h in s['hosts']:
+                        types=[]
+                        for ma in h['measurement_archives']:
+                            if ma['type'].count('owamp')>0: types.append('owamp')
+                            if ma['type'].count('bwctl')>0: types.append('bwctl')
+                            #if ma['type'].count('traceroute')>0: types.append('traceroute')
+                        for a in h['addresses']:
+                            print(a)
+                            ip=getIP(a)
+                            if ip!='unknown': 
+                                if 'owamp' in types: throughputHosts.append(ip)
+                                if 'bwctl' in types: latencyHosts.append(ip)
+        except:
+            print ("Could not load mesh,", m, " Exiting...")
+            print ("Unexpected error: ", str(sys.exc_info()[0]))               
         
-    try:
-        r=requests.get('https://myosg.grid.iu.edu/psmesh/json/name/wlcg-latency-all')
-        res = r.json()
-        latencyHosts=[]
-        for o in res['organizations']:
-            for s in o['sites']:
-                for h in s['hosts']:
-                    for a in h['addresses']:
-                        print(a)
-                        ip=getIP(a)
-                        if ip!='unknown': latencyHosts.append(ip)
-        print(latencyHosts)
-        print('latencyHosts reloaded.')
-    except:
-        print("Could not get perfsonar latency hosts. Exiting...")
-        print("Unexpected error: ", str(sys.exc_info()[0]))
+
+    print('throughputHosts reloaded:\n',throughputHosts)
+    print('latencyHosts reloaded:\n',latencyHosts)
+    
+    # try:
+    #     r=requests.get('https://myosg.grid.iu.edu/psmesh/json/name/wlcg-all')
+    #     res = r.json()
+    #     throughputHosts=[]
+    #     for o in res['organizations']:
+    #         for s in o['sites']:
+    #             for h in s['hosts']:
+    #                 for a in h['addresses']:
+    #                     print(a)
+    #                     ip=getIP(a)
+    #                     if ip!='unknown': throughputHosts.append(ip)
+    #     print(throughputHosts)
+    #     print('throughputHosts reloaded.')
+    # except:
+    #     print("Could not get perfsonar throughput hosts. Exiting...")
+    #     print("Unexpected error: ", str(sys.exc_info()[0]))
+    #
+    # try:
+    #     r=requests.get('https://myosg.grid.iu.edu/psmesh/json/name/wlcg-latency-all')
+    #     res = r.json()
+    #     latencyHosts=[]
+    #     for o in res['organizations']:
+    #         for s in o['sites']:
+    #             for h in s['hosts']:
+    #                 for a in h['addresses']:
+    #                     print(a)
+    #                     ip=getIP(a)
+    #                     if ip!='unknown': latencyHosts.append(ip)
+    #     print(latencyHosts)
+    #     print('latencyHosts reloaded.')
+    # except:
+    #     print("Could not get perfsonar latency hosts. Exiting...")
+    #     print("Unexpected error: ", str(sys.exc_info()[0]))
     
     print('All done.')
     ot=time.time() # all updated so the next one will be in one day.
