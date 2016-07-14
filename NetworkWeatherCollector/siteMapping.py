@@ -100,7 +100,6 @@ def reload():
                         for ma in h['measurement_archives']:
                             if ma['type'].count('owamp')>0: types.append('owamp')
                             if ma['type'].count('bwctl')>0: types.append('bwctl')
-                            #if ma['type'].count('traceroute')>0: types.append('traceroute')
                         for a in h['addresses']:
                             print(a)
                             ip=getIP(a)

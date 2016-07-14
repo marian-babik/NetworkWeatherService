@@ -76,6 +76,7 @@ def eventCreator():
             data['destVO']=de[1]
         data['srcProduction']=siteMapping.isProductionLatency(source)
         data['destProduction']=siteMapping.isProductionLatency(destination)
+        print ('processing...')
         if not 'summaries'in m: 
             q.task_done()
             print(threading.current_thread().name, "no summaries found in the message")
@@ -94,6 +95,7 @@ def eventCreator():
                     aLotOfData.append(copy.copy(data))
         q.task_done()
         if len(aLotOfData)>500:
+            print('writing out data...')
             try:
                 res = helpers.bulk(es, aLotOfData, raise_on_exception=True,request_timeout=60)
                 print(threading.current_thread().name, "\t inserted:",res[0], '\tErrors:',res[1])
