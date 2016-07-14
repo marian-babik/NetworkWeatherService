@@ -105,8 +105,8 @@ def reload():
                             print(a)
                             ip=getIP(a)
                             if ip!='unknown': 
-                                if 'owamp' in types: throughputHosts.append(ip)
-                                if 'bwctl' in types: latencyHosts.append(ip)
+                                if 'bwctl' in types: throughputHosts.append(ip)
+                                if 'owamp' in types: latencyHosts.append(ip)
         except:
             print ("Could not load mesh,", m, " Exiting...")
             print ("Unexpected error: ", str(sys.exc_info()[0]))               
