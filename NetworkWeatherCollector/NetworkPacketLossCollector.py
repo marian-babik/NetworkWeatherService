@@ -122,5 +122,5 @@ for host in allhosts:
     conn.subscribe(destination = topic, ack = 'auto', id="1", headers = {})
 
 while(True):
-    print("qsize:", q.qsize())
+    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "qsize:", q.qsize())
     time.sleep(60)

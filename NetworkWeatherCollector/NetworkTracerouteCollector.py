@@ -7,7 +7,6 @@ import threading
 from threading import Thread
 import requests
 import copy
-
 import json
 from datetime import datetime
 from elasticsearch import Elasticsearch, exceptions as es_exceptions
@@ -18,23 +17,17 @@ import stomp
 allhosts=[]
 allhosts.append([('128.142.36.204',61513)])
 allhosts.append([('188.185.227.50',61513)])
-topic = '/topic/perfsonar.summary.histogram-owdelay'
+topic = '/topic/perfsonar.packet-trace'
 
 siteMapping.reload()
 
 lastReconnectionTime=0
 
-#mids={}
 class MyListener(object):
     def on_error(self, headers, message):
         print('received an error %s' % message)
     def on_message(self, headers, message):
         q.put(message)
-#        id=headers['message-id']
-#        if id in mids:
-#            print (headers, message)
-#        else:
-#            mids[id]=True
 
 
 def GetESConnection(lastReconnectionTime):
@@ -58,9 +51,9 @@ def eventCreator():
         ind="network_weather_2-"+str(d.year)+"."+str(d.month)+"."+str(d.day)
         data = {
             '_index': ind,
-            '_type': 'latency'
+            '_type': 'traceroute'
         }
-        
+        #print(m)
         source=m['meta']['source']
         destination=m['meta']['destination']
         data['MA']=m['meta']['measurement_agent']
@@ -76,27 +69,27 @@ def eventCreator():
             data['destVO']=de[1]
         data['srcProduction']=siteMapping.isProductionLatency(source)
         data['destProduction']=siteMapping.isProductionLatency(destination)
-        if not 'summaries'in m: 
+        if not 'datapoints' in m: 
             q.task_done()
-            print(threading.current_thread().name, "no summaries found in the message")
+            print(threading.current_thread().name, "no datapoints found in the message")
             continue
-        su=m['summaries']
-        for s in su:
-            if s['summary_window']=='300' and s['summary_type']=='statistics':
-                results=s['summary_data']
-                #print(results)
-                for r in results:
-                    data['timestamp']=datetime.utcfromtimestamp(r[0]).isoformat()
-                    data['delay_mean']=r[1]['mean']
-                    data['delay_median']=r[1]['median']
-                    data['delay_sd']=r[1]['standard-deviation']
-                    #print(data)
-                    aLotOfData.append(copy.copy(data))
+        dp=m['datapoints']
+        # print(su)
+        for ts in dp:
+            data['timestamp']=datetime.utcfromtimestamp(float(ts)).isoformat()
+            data['hops']=[]
+            hops = dp[ts]
+            for hop in hops:
+                if hop['ip'] == None: continue
+                if hop['ip'] not in data['hops']:
+					data['hops'].append(hop['ip'])
+                    # print(data)
+            data['hash']=hash("".join(data['hops']))
+            aLotOfData.append(copy.copy(data))
         q.task_done()
         if len(aLotOfData)>500:
-            # print('writing out data...')
             try:
-                res = helpers.bulk(es, aLotOfData, raise_on_exception=True,request_timeout=60)
+                res = helpers.bulk(es, aLotOfData, raise_on_exception=False,request_timeout=60)
                 print(threading.current_thread().name, "\t inserted:",res[0], '\tErrors:',res[1])
                 aLotOfData=[]
             except es_exceptions.ConnectionError as e:
@@ -132,5 +125,5 @@ for host in allhosts:
     conn.subscribe(destination = topic, ack = 'auto', id="1", headers = {})
 
 while(True):
-    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "qsize:", q.qsize())
+    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),"qsize:", q.qsize()) 
     time.sleep(60)
