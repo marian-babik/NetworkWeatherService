@@ -17,7 +17,7 @@ import stomp
 allhosts=[]
 allhosts.append([('128.142.36.204',61513)])
 allhosts.append([('188.185.227.50',61513)])
-topic = '/topic/perfsonar.throughput'
+topic = '/topic/perfsonar.raw.throughput'
 
 siteMapping.reload()
 
