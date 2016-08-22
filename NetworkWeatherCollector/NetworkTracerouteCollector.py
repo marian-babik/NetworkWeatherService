@@ -42,6 +42,7 @@ def GetESConnection(lastReconnectionTime):
     return es
 
 def eventCreator():
+    tries=0
     aLotOfData=[]
     while(True):
         d=q.get()
@@ -87,11 +88,18 @@ def eventCreator():
             data['hash']=hash("".join(data['hops']))
             aLotOfData.append(copy.copy(data))
         q.task_done()
+        
+
+        if tries%10==1:
+            es = GetESConnection(lastReconnectionTime)
+            
         if len(aLotOfData)>500:
+            tries += 1
             try:
                 res = helpers.bulk(es, aLotOfData, raise_on_exception=False,request_timeout=60)
                 print(threading.current_thread().name, "\t inserted:",res[0], '\tErrors:',res[1])
                 aLotOfData=[]
+                tries = 0
             except es_exceptions.ConnectionError as e:
                 print('ConnectionError ', e)
             except es_exceptions.TransportError as e:

@@ -18,7 +18,8 @@ import stomp
 allhosts=[]
 allhosts.append([('128.142.36.204',61513)])
 allhosts.append([('188.185.227.50',61513)])
-topic = '/topic/perfsonar.summary.histogram-owdelay'
+#topic = '/topic/perfsonar.summary.histogram-owdelay'
+topic = '/topic/perfsonar.histogram-owdelay'
 
 siteMapping.reload()
 
@@ -50,6 +51,7 @@ def GetESConnection(lastReconnectionTime):
 
 def eventCreator():
     aLotOfData=[]
+    tries=0
     while(True):
         d=q.get()
         m=json.loads(d)
@@ -93,12 +95,16 @@ def eventCreator():
                     #print(data)
                     aLotOfData.append(copy.copy(data))
         q.task_done()
+        if tries%10==1:
+            es = GetESConnection(lastReconnectionTime)
         if len(aLotOfData)>500:
             # print('writing out data...')
+            tries += 1
             try:
                 res = helpers.bulk(es, aLotOfData, raise_on_exception=True,request_timeout=60)
                 print(threading.current_thread().name, "\t inserted:",res[0], '\tErrors:',res[1])
                 aLotOfData=[]
+                tries=0
             except es_exceptions.ConnectionError as e:
                 print('ConnectionError ', e)
             except es_exceptions.TransportError as e:

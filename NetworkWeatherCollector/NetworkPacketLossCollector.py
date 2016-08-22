@@ -30,9 +30,21 @@ class MyListener(object):
     def on_message(self, headers, message):
         q.put(message)
 
+def GetESConnection(lastReconnectionTime):
+    if ( time.time()-lastReconnectionTime < 60 ): 
+        return
+    lastReconnectionTime=time.time()
+    print("make sure we are connected right...")
+    res = requests.get('http://cl-analytics.mwt2.org:9200')
+    print(res.content)
+    
+    es = Elasticsearch([{'host':'cl-analytics.mwt2.org', 'port':9200}])
+    return es
+
 
 def eventCreator():
     aLotOfData=[]
+    tries=0
     while(True):
         d=q.get()
         m=json.loads(d)
@@ -74,12 +86,16 @@ def eventCreator():
                     # print(data)
                     aLotOfData.append(copy.copy(data))
         q.task_done()
+        if tries%10==1:
+            es = GetESConnection(lastReconnectionTime)
         if len(aLotOfData)>500:
+            tries += 1
             try:
                 es = Elasticsearch([{'host':'cl-analytics.mwt2.org', 'port':9200}])
-                res = helpers.bulk(es, aLotOfData, raise_on_exception=False,request_timeout=60)
+                res = helpers.bulk(es, aLotOfData, raise_on_exception=True,request_timeout=60)
                 print(threading.current_thread().name, "\t inserted:",res[0], '\tErrors:',res[1])
                 aLotOfData=[]
+                tries = 0
             except es_exceptions.ConnectionError as e:
                 print('ConnectionError ', e)
             except es_exceptions.TransportError as e:
@@ -94,6 +110,9 @@ def eventCreator():
 passfile = open('/afs/cern.ch/user/i/ivukotic/ATLAS-Hadoop/.passfile')
 passwd=passfile.read()
 
+es = GetESConnection(lastReconnectionTime)
+while (not es):
+    es = GetESConnection(lastReconnectionTime)
 
 q=Queue.Queue()
 #start eventCreator threads
