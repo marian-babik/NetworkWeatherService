@@ -18,8 +18,8 @@ import stomp
 allhosts=[]
 allhosts.append([('128.142.36.204',61513)])
 allhosts.append([('188.185.227.50',61513)])
-#topic = '/topic/perfsonar.summary.histogram-owdelay'
-topic = '/topic/perfsonar.histogram-owdelay'
+topic = '/topic/perfsonar.summary.histogram-owdelay'
+#topic = '/topic/perfsonar.histogram-owdelay'
 
 siteMapping.reload()
 
