@@ -68,8 +68,8 @@ def eventCreator():
         if de!= None:
             data['destSite']=de[0]
             data['destVO']=de[1]
-        data['srcProduction']=siteMapping.isProductionLatency(source)
-        data['destProduction']=siteMapping.isProductionLatency(destination)
+        data['srcProduction']=siteMapping.isProductionThroughput(source)
+        data['destProduction']=siteMapping.isProductionThroughput(destination)
         if not 'datapoints' in m: 
             q.task_done()
             print(threading.current_thread().name, "no datapoints found in the message")
