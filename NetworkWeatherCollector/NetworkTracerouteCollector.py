@@ -75,16 +75,24 @@ def eventCreator():
         dp=m['datapoints']
         # print(su)
         for ts in dp:
-            dati=datetime.utcfromtimestamp(r[0]).isoformat()
+            dati=datetime.utcfromtimestamp(ts).isoformat()
             data['_index']="network_weather_2-"+str(dati.year)+"."+str(dati.month)+"."+str(dati.day)
             data['timestamp']=dati
             data['hops']=[]
+            data['rtts']=[]
+            data['ttls']=[]
             hops = dp[ts]
             for hop in hops:
-                if hop['ip'] == None: continue
-                if hop['ip'] not in data['hops']:
-					data['hops'].append(hop['ip'])
-                    # print(data)
+                if hop['ttl'] == None or hop['ip'] == None or hop['query']==None : continue
+                nq=int(hop['query'])
+                if nq!=1: continue
+                data['hops'].append(hop['ip'])
+                data['ttls'].append(int(hop['ttl']))
+                if hop['rtt'] != None:
+                    data['rtts'].append(float(hop['rtt'])
+                else:
+                    data['rtts'].append(0.0)    
+                # print(data)
             data['hash']=hash("".join(data['hops']))
             aLotOfData.append(copy.copy(data))
         q.task_done()
