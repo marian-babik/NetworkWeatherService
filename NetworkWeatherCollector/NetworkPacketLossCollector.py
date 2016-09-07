@@ -17,7 +17,8 @@ import stomp
 allhosts=[]
 allhosts.append([('128.142.36.204',61513)])
 allhosts.append([('188.185.227.50',61513)])
-topic = '/topic/perfsonar.packet-loss-rate'
+topic = '/topic/perfsonar.summary.packet-loss-rate'
+#topic = '/topic/perfsonar.packet-loss-rate'
 
 siteMapping.reload()
 
@@ -28,7 +29,6 @@ class MyListener(object):
         print('received an error %s' % message)
     def on_message(self, headers, message):
         q.put(message)
-
 
 def GetESConnection(lastReconnectionTime):
     if ( time.time()-lastReconnectionTime < 60 ): 
@@ -41,8 +41,10 @@ def GetESConnection(lastReconnectionTime):
     es = Elasticsearch([{'host':'cl-analytics.mwt2.org', 'port':9200}])
     return es
 
+
 def eventCreator():
     aLotOfData=[]
+    tries=0
     while(True):
         d=q.get()
         m=json.loads(d)
@@ -84,11 +86,16 @@ def eventCreator():
                     # print(data)
                     aLotOfData.append(copy.copy(data))
         q.task_done()
+        if tries%10==1:
+            es = GetESConnection(lastReconnectionTime)
         if len(aLotOfData)>500:
+            tries += 1
             try:
-                res = helpers.bulk(es, aLotOfData, raise_on_exception=False,request_timeout=60)
+                es = Elasticsearch([{'host':'cl-analytics.mwt2.org', 'port':9200}])
+                res = helpers.bulk(es, aLotOfData, raise_on_exception=True,request_timeout=60)
                 print(threading.current_thread().name, "\t inserted:",res[0], '\tErrors:',res[1])
                 aLotOfData=[]
+                tries = 0
             except es_exceptions.ConnectionError as e:
                 print('ConnectionError ', e)
             except es_exceptions.TransportError as e:
@@ -122,5 +129,5 @@ for host in allhosts:
     conn.subscribe(destination = topic, ack = 'auto', id="1", headers = {})
 
 while(True):
-    print("qsize:", q.qsize())
+    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "qsize:", q.qsize())
     time.sleep(60)

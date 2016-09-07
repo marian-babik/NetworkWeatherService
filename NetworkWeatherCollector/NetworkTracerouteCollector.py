@@ -17,8 +17,7 @@ import stomp
 allhosts=[]
 allhosts.append([('128.142.36.204',61513)])
 allhosts.append([('188.185.227.50',61513)])
-topic = '/topic/perfsonar.raw.throughput'
-#topic = '/topic/perfsonar.throughput'
+topic = '/topic/perfsonar.packet-trace'
 
 siteMapping.reload()
 
@@ -26,10 +25,10 @@ lastReconnectionTime=0
 
 class MyListener(object):
     def on_error(self, headers, message):
-        print ('received an error %s' % message)
+        print('received an error %s' % message)
     def on_message(self, headers, message):
-        # print (message)
         q.put(message)
+
 
 def GetESConnection(lastReconnectionTime):
     if ( time.time()-lastReconnectionTime < 60 ): 
@@ -42,10 +41,9 @@ def GetESConnection(lastReconnectionTime):
     es = Elasticsearch([{'host':'cl-analytics.mwt2.org', 'port':9200}])
     return es
 
-
 def eventCreator():
-    aLotOfData=[]
     tries=0
+    aLotOfData=[]
     while(True):
         d=q.get()
         m=json.loads(d)
@@ -54,9 +52,9 @@ def eventCreator():
         ind="network_weather_2-"+str(d.year)+"."+str(d.month)+"."+str(d.day)
         data = {
             '_index': ind,
-            '_type': 'throughput'
+            '_type': 'traceroute'
         }
-        
+        #print(m)
         source=m['meta']['source']
         destination=m['meta']['destination']
         data['MA']=m['meta']['measurement_agent']
@@ -72,26 +70,34 @@ def eventCreator():
             data['destVO']=de[1]
         data['srcProduction']=siteMapping.isProductionThroughput(source)
         data['destProduction']=siteMapping.isProductionThroughput(destination)
-        if not 'datapoints'in m:
-            print(threading.current_thread().name, 'no datapoints in this message!')
+        if not 'datapoints' in m: 
             q.task_done()
+            print(threading.current_thread().name, "no datapoints found in the message")
             continue
-        su=m['datapoints']
-        for ts, th in su.iteritems():
-            data['timestamp']=datetime.utcfromtimestamp(int(ts)).isoformat()
-            data['throughput']=th
-            #print(data)
+        dp=m['datapoints']
+        # print(su)
+        for ts in dp:
+            data['timestamp']=datetime.utcfromtimestamp(float(ts)).isoformat()
+            data['hops']=[]
+            hops = dp[ts]
+            for hop in hops:
+                if hop['ip'] == None: continue
+                if hop['ip'] not in data['hops']:
+					data['hops'].append(hop['ip'])
+                    # print(data)
+            data['hash']=hash("".join(data['hops']))
             aLotOfData.append(copy.copy(data))
         q.task_done()
+        
 
         if tries%10==1:
             es = GetESConnection(lastReconnectionTime)
             
-        if len(aLotOfData)>100:
+        if len(aLotOfData)>500:
             tries += 1
             try:
                 res = helpers.bulk(es, aLotOfData, raise_on_exception=False,request_timeout=60)
-                print (threading.current_thread().name, "\t inserted:",res[0], '\tErrors:',res[1])
+                print(threading.current_thread().name, "\t inserted:",res[0], '\tErrors:',res[1])
                 aLotOfData=[]
                 tries = 0
             except es_exceptions.ConnectionError as e:
@@ -100,10 +106,10 @@ def eventCreator():
                 print('TransportError ', e)
             except helpers.BulkIndexError as e:
                 print(e[0])
-                #for i in e[1]:
-                #    print(i) 
+                # for i in e[1]:
+                    # print(i)
             except:
-                print('Something seriously wrong happened. ') 
+                print('Something seriously wrong happened.')
 
 passfile = open('/afs/cern.ch/user/i/ivukotic/ATLAS-Hadoop/.passfile')
 passwd=passfile.read()
@@ -114,7 +120,7 @@ while (not es):
 
 q=Queue.Queue()
 #start eventCreator threads
-for i in range(1):
+for i in range(3):
      t = Thread(target=eventCreator)
      t.daemon = True
      t.start()
@@ -127,5 +133,5 @@ for host in allhosts:
     conn.subscribe(destination = topic, ack = 'auto', id="1", headers = {})
 
 while(True):
-    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "qsize:", q.qsize())
+    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),"qsize:", q.qsize()) 
     time.sleep(60)
