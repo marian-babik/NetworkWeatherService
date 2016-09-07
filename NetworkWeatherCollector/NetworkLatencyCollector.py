@@ -56,10 +56,7 @@ def eventCreator():
         d=q.get()
         m=json.loads(d)
         
-        d = datetime.now()
-        ind="network_weather_2-"+str(d.year)+"."+str(d.month)+"."+str(d.day)
         data = {
-            '_index': ind,
             '_type': 'latency'
         }
         
@@ -88,7 +85,9 @@ def eventCreator():
                 results=s['summary_data']
                 #print(results)
                 for r in results:
-                    data['timestamp']=datetime.utcfromtimestamp(r[0]).isoformat()
+                    dati=datetime.utcfromtimestamp(r[0]).isoformat()
+                    data['_index']="network_weather_2-"+str(dati.year)+"."+str(dati.month)+"."+str(dati.day)
+                    data['timestamp']=dati
                     data['delay_mean']=r[1]['mean']
                     data['delay_median']=r[1]['median']
                     data['delay_sd']=r[1]['standard-deviation']

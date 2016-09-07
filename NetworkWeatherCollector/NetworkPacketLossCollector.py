@@ -49,10 +49,7 @@ def eventCreator():
         d=q.get()
         m=json.loads(d)
         
-        d = datetime.now()
-        ind="network_weather_2-"+str(d.year)+"."+str(d.month)+"."+str(d.day)
         data = {
-            '_index': ind,
             '_type': 'packet_loss_rate'
         }
         
@@ -81,7 +78,9 @@ def eventCreator():
             if s['summary_window']=='300':
                 results = s['summary_data']
                 for r in results:
-                    data['timestamp']=datetime.utcfromtimestamp(r[0]).isoformat()
+                    dati=datetime.utcfromtimestamp(r[0]).isoformat()
+                    data['_index']="network_weather_2-"+str(dati.year)+"."+str(dati.month)+"."+str(dati.day)
+                    data['timestamp']=dati
                     data['packet_loss']=r[1]
                     # print(data)
                     aLotOfData.append(copy.copy(data))

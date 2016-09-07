@@ -50,10 +50,7 @@ def eventCreator():
         d=q.get()
         m=json.loads(d)
         
-        d = datetime.now()
-        ind="network_weather_2-"+str(d.year)+"."+str(d.month)+"."+str(d.day)
         data = {
-            '_index': ind,
             '_type': 'throughput'
         }
         
@@ -78,7 +75,9 @@ def eventCreator():
             continue
         su=m['datapoints']
         for ts, th in su.iteritems():
-            data['timestamp']=datetime.utcfromtimestamp(int(ts)).isoformat()
+            dati=datetime.utcfromtimestamp(r[0]).isoformat()
+            data['_index']="network_weather_2-"+str(dati.year)+"."+str(dati.month)+"."+str(dati.day)
+            data['timestamp']=dati
             data['throughput']=th
             #print(data)
             aLotOfData.append(copy.copy(data))

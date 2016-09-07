@@ -48,10 +48,7 @@ def eventCreator():
         d=q.get()
         m=json.loads(d)
         
-        d = datetime.now()
-        ind="network_weather_2-"+str(d.year)+"."+str(d.month)+"."+str(d.day)
         data = {
-            '_index': ind,
             '_type': 'traceroute'
         }
         #print(m)
@@ -77,7 +74,9 @@ def eventCreator():
         dp=m['datapoints']
         # print(su)
         for ts in dp:
-            data['timestamp']=datetime.utcfromtimestamp(float(ts)).isoformat()
+            dati=datetime.utcfromtimestamp(r[0]).isoformat()
+            data['_index']="network_weather_2-"+str(dati.year)+"."+str(dati.month)+"."+str(dati.day)
+            data['timestamp']=dati
             data['hops']=[]
             hops = dp[ts]
             for hop in hops:
