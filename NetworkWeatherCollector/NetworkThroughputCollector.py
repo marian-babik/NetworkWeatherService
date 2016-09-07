@@ -75,7 +75,7 @@ def eventCreator():
             continue
         su=m['datapoints']
         for ts, th in su.iteritems():
-            dati=datetime.utcfromtimestamp(r[0]).isoformat()
+            dati=datetime.utcfromtimestamp(ts).isoformat()
             data['_index']="network_weather_2-"+str(dati.year)+"."+str(dati.month)+"."+str(dati.day)
             data['timestamp']=dati
             data['throughput']=th
