@@ -52,7 +52,7 @@ def eventCreator():
         data = {
             '_type': 'traceroute'
         }
-        print(m)
+        # print(m)
         source=m['meta']['source']
         destination=m['meta']['destination']
         data['MA']=m['meta']['measurement_agent']
