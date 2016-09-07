@@ -89,7 +89,7 @@ def eventCreator():
                 data['hops'].append(hop['ip'])
                 data['ttls'].append(int(hop['ttl']))
                 if hop['rtt'] != None:
-                    data['rtts'].append(float(hop['rtt'])
+                    data['rtts'].append(float(hop['rtt']))
                 else:
                     data['rtts'].append(0.0)    
                 # print(data)
