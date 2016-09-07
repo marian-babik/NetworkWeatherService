@@ -17,7 +17,8 @@ import stomp
 allhosts=[]
 allhosts.append([('128.142.36.204',61513)])
 allhosts.append([('188.185.227.50',61513)])
-topic = '/topic/perfsonar.packet-trace'
+# topic = '/topic/perfsonar.packet-trace'
+topic = '/topic/perfsonar.raw.packet-trace'
 
 siteMapping.reload()
 
@@ -51,7 +52,7 @@ def eventCreator():
         data = {
             '_type': 'traceroute'
         }
-        #print(m)
+        print(m)
         source=m['meta']['source']
         destination=m['meta']['destination']
         data['MA']=m['meta']['measurement_agent']
