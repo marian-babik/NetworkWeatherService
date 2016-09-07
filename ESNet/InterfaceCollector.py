@@ -64,7 +64,9 @@ def getInterfaceData(i):
     try:
         #print(link)
         req = requests.get(link)
-        if (req.status_code>299): print ("problem: ", i.name, "\treturned:", req.status_code)
+        if (req.status_code>299): 
+            print ("problem: ", i.name, "\treturned:", req.status_code)
+            return res
         j=req.json()
         
         d = datetime.now()
@@ -110,7 +112,10 @@ def getFlowData(i):
     try:
         #print(link)
         req = requests.get(link)
-        if (req.status_code>299): print ("problem: ", i.name, "\treturned:", req.status_code)
+        if (req.status_code>299): 
+            print ("problem: ", i.name, "\treturned:", req.status_code)
+            return res
+
         j=req.json()
         
         d = datetime.now()
@@ -146,6 +151,7 @@ def GetESConnection(lastReconnectionTime):
     lastReconnectionTime=time.time()
     print ("make sure we are connected right...")
     res = requests.get('http://' + ESserver + ':' + str(ESport))
+      #sys.exit(0)
     print(res.content)
     
     es = Elasticsearch([{'host': ESserver, 'port': ESport} ],http_auth=auth,timeout=timeout)
