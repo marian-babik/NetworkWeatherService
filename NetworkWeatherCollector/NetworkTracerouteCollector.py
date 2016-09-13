@@ -77,7 +77,7 @@ def eventCreator():
         for ts in dp:
             dati=datetime.utcfromtimestamp(float(ts))
             data['_index']="network_weather_2-"+str(dati.year)+"."+str(dati.month)+"."+str(dati.day)
-            data['timestamp']=float(ts)*1000
+            data['timestamp']=int(float(ts)*1000)
             data['hops']=[]
             data['rtts']=[]
             data['ttls']=[]
@@ -101,7 +101,7 @@ def eventCreator():
         if tries%10==1:
             es = GetESConnection(lastReconnectionTime)
             
-        if len(aLotOfData)>500:
+        if len(aLotOfData)>100:
             tries += 1
             try:
                 res = helpers.bulk(es, aLotOfData, raise_on_exception=False,request_timeout=60)
@@ -114,6 +114,7 @@ def eventCreator():
                 print('TransportError ', e)
             except helpers.BulkIndexError as e:
                 print(e[0])
+                print(e[1][0])
                 # for i in e[1]:
                     # print(i)
             except:
