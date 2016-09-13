@@ -77,7 +77,7 @@ def eventCreator():
         for ts in dp:
             dati=datetime.utcfromtimestamp(float(ts))
             data['_index']="network_weather_2-"+str(dati.year)+"."+str(dati.month)+"."+str(dati.day)
-            data['timestamp']=dati
+            data['timestamp']=float(ts)*1000
             data['hops']=[]
             data['rtts']=[]
             data['ttls']=[]

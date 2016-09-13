@@ -75,9 +75,9 @@ def eventCreator():
             continue
         su=m['datapoints']
         for ts, th in su.iteritems():
-            dati=datetime.utcfromtimestamp(float(ts)).isoformat()
+            dati=datetime.utcfromtimestamp(float(ts))
             data['_index']="network_weather_2-"+str(dati.year)+"."+str(dati.month)+"."+str(dati.day)
-            data['timestamp']=dati
+            data['timestamp']=int(float(ts)*1000)
             data['throughput']=th
             #print(data)
             aLotOfData.append(copy.copy(data))
@@ -99,6 +99,7 @@ def eventCreator():
                 print('TransportError ', e)
             except helpers.BulkIndexError as e:
                 print(e[0])
+                print(e[1][0])
                 #for i in e[1]:
                 #    print(i) 
             except:

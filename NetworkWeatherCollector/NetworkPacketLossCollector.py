@@ -78,9 +78,9 @@ def eventCreator():
             if s['summary_window']=='300':
                 results = s['summary_data']
                 for r in results:
-                    dati=datetime.utcfromtimestamp(r[0]).isoformat()
+                    dati=datetime.utcfromtimestamp(float(r[0]))
                     data['_index']="network_weather_2-"+str(dati.year)+"."+str(dati.month)+"."+str(dati.day)
-                    data['timestamp']=dati
+                    data['timestamp']=r[0]*1000
                     data['packet_loss']=r[1]
                     # print(data)
                     aLotOfData.append(copy.copy(data))

@@ -85,9 +85,9 @@ def eventCreator():
                 results=s['summary_data']
                 #print(results)
                 for r in results:
-                    dati=datetime.utcfromtimestamp(r[0]).isoformat()
+                    dati=datetime.utcfromtimestamp(float(r[0]))
                     data['_index']="network_weather_2-"+str(dati.year)+"."+str(dati.month)+"."+str(dati.day)
-                    data['timestamp']=dati
+                    data['timestamp']=r[0]*1000
                     data['delay_mean']=r[1]['mean']
                     data['delay_median']=r[1]['median']
                     data['delay_sd']=r[1]['standard-deviation']
