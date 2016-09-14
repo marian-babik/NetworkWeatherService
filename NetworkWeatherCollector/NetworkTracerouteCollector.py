@@ -83,12 +83,12 @@ def eventCreator():
             data['ttls']=[]
             hops = dp[ts]
             for hop in hops:
-                if hop['ttl'] == None or hop['ip'] == None or hop['query']==None : continue
+                if 'ttl' not in hop or 'ip' not in hop or 'query' not in hop : continue
                 nq=int(hop['query'])
                 if nq!=1: continue
                 data['hops'].append(hop['ip'])
                 data['ttls'].append(int(hop['ttl']))
-                if hop['rtt'] != None:
+                if rtt in hop and hop['rtt']!=None:
                     data['rtts'].append(float(hop['rtt']))
                 else:
                     data['rtts'].append(0.0)    
@@ -98,7 +98,7 @@ def eventCreator():
         q.task_done()
         
 
-        if tries%10==1:
+        if tries%10==9:
             es = GetESConnection(lastReconnectionTime)
             
         if len(aLotOfData)>100:
