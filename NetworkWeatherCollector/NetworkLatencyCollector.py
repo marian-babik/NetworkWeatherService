@@ -23,7 +23,7 @@ topic = '/topic/perfsonar.summary.histogram-owdelay'
 
 siteMapping.reload()
 
-conn = None
+conns = []
 
 lastReconnectionTime=0
 
@@ -44,14 +44,18 @@ class MyListener(object):
 #        else:
 #            mids[id]=True
 
-def connectToAMQ():
-    if not conn == None:
+def connectToAMQ(conns):
+    for conn in conns:
+        if conn:
+            conn.disconnect()
+    conns=[]
     for host in allhosts:
         conn = stomp.Connection(host, user='psatlflume', passcode=passwd.strip() )
         conn.set_listener('MyConsumer', MyListener())
         conn.start()
         conn.connect()
         conn.subscribe(destination = topic, ack = 'auto', id="1", headers = {})    
+        conns.append(conn)
 
 def GetESConnection(lastReconnectionTime):
     if ( time.time()-lastReconnectionTime < 60 ): 
@@ -137,7 +141,7 @@ es = GetESConnection(lastReconnectionTime)
 while (not es):
     es = GetESConnection(lastReconnectionTime)
 
-connectToAMQ()
+connectToAMQ(conns)
 
 q=Queue.Queue()
 #start eventCreator threads
@@ -150,7 +154,9 @@ for i in range(3):
 
 while(True):
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "qsize:", q.qsize())
-    if not conn.is_connected():
-        print ('problem with connection. try reconnecting...')
-        connectToAMQ()
+    for conn in conns:
+        if not conn.is_connected():
+            print ('problem with connection. try reconnecting...')
+            connectToAMQ(conns)
+            break
     time.sleep(60)
