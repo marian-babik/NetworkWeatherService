@@ -93,7 +93,13 @@ def eventCreator():
                 else:
                     data['rtts'].append(0.0)    
                 # print(data)
-            data['hash']=hash("".join(data['hops']))
+            hs=''
+            for h in data['hops']:
+                if h==None: 
+					hs+="None"
+                else:
+					hs+=h
+            data['hash']=hash(hs)
             aLotOfData.append(copy.copy(data))
         q.task_done()
         
