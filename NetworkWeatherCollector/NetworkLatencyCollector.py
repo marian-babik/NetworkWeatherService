@@ -23,20 +23,35 @@ topic = '/topic/perfsonar.summary.histogram-owdelay'
 
 siteMapping.reload()
 
+conn = None
+
 lastReconnectionTime=0
 
 #mids={}
 class MyListener(object):
-    def on_error(self, headers, message):
-        print('received an error %s' % message)
     def on_message(self, headers, message):
         q.put(message)
+    def on_error(self, headers, message):
+        print('received an error %s' % message)
+    def on_heartbeat_timeout(self):
+        print ('lost heartbeat. Needs a reconnect!')
+        conn.disconnect()
+    def on_disconnected(self):
+        print ('no connection. Needs a reconnect!')
 #        id=headers['message-id']
 #        if id in mids:
 #            print (headers, message)
 #        else:
 #            mids[id]=True
 
+def connectToAMQ():
+    if not conn == None:
+    for host in allhosts:
+        conn = stomp.Connection(host, user='psatlflume', passcode=passwd.strip() )
+        conn.set_listener('MyConsumer', MyListener())
+        conn.start()
+        conn.connect()
+        conn.subscribe(destination = topic, ack = 'auto', id="1", headers = {})    
 
 def GetESConnection(lastReconnectionTime):
     if ( time.time()-lastReconnectionTime < 60 ): 
@@ -122,6 +137,8 @@ es = GetESConnection(lastReconnectionTime)
 while (not es):
     es = GetESConnection(lastReconnectionTime)
 
+connectToAMQ()
+
 q=Queue.Queue()
 #start eventCreator threads
 for i in range(3):
@@ -129,13 +146,11 @@ for i in range(3):
      t.daemon = True
      t.start()
 
-for host in allhosts:
-    conn = stomp.Connection(host, user='psatlflume', passcode=passwd.strip() )
-    conn.set_listener('MyConsumer', MyListener())
-    conn.start()
-    conn.connect()
-    conn.subscribe(destination = topic, ack = 'auto', id="1", headers = {})
+
 
 while(True):
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "qsize:", q.qsize())
+    if not conn.is_connected():
+        print ('problem with connection. try reconnecting...')
+        connectToAMQ()
     time.sleep(60)
