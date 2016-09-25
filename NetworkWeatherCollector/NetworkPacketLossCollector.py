@@ -22,25 +22,29 @@ topic = '/topic/perfsonar.summary.packet-loss-rate'
 
 siteMapping.reload()
 
-lastReconnectionTime=0
-
 class MyListener(object):
     def on_error(self, headers, message):
         print('received an error %s' % message)
     def on_message(self, headers, message):
         q.put(message)
 
-def GetESConnection(lastReconnectionTime):
-    if ( time.time()-lastReconnectionTime < 60 ): 
-        return
-    lastReconnectionTime=time.time()
+def GetESConnection():
     print("make sure we are connected right...")
     res = requests.get('http://cl-analytics.mwt2.org:9200')
     print(res.content)
-    
-    es = Elasticsearch([{'host':'cl-analytics.mwt2.org', 'port':9200}])
-    return es
-
+    conn=False
+    try:
+        es = Elasticsearch([{'host':'cl-analytics.mwt2.org', 'port':9200}])
+        conn=True
+    except es_exceptions.ConnectionError as e:
+        print('ConnectionError in GetESConnection: ', e)
+    except:
+        print('Something seriously wrong happened.')
+    if not conn:
+        time.sleep(70)
+        GetESConnection()
+    else:
+        return es
 
 def eventCreator():
     aLotOfData=[]
@@ -85,16 +89,16 @@ def eventCreator():
                     # print(data)
                     aLotOfData.append(copy.copy(data))
         q.task_done()
-        if tries%10==1:
-            es = GetESConnection(lastReconnectionTime)
+        
+
         if len(aLotOfData)>500:
-            tries += 1
+            reconnect=True
             try:
                 es = Elasticsearch([{'host':'cl-analytics.mwt2.org', 'port':9200}])
                 res = helpers.bulk(es, aLotOfData, raise_on_exception=True,request_timeout=60)
                 print(threading.current_thread().name, "\t inserted:",res[0], '\tErrors:',res[1])
                 aLotOfData=[]
-                tries = 0
+                reconnect=False
             except es_exceptions.ConnectionError as e:
                 print('ConnectionError ', e)
             except es_exceptions.TransportError as e:
@@ -105,13 +109,12 @@ def eventCreator():
                     # print(i)
             except:
                 print('Something seriously wrong happened.')
+            if reconnect: es = GetESConnection()
 
 passfile = open('/afs/cern.ch/user/i/ivukotic/ATLAS-Hadoop/.passfile')
 passwd=passfile.read()
 
-es = GetESConnection(lastReconnectionTime)
-while (not es):
-    es = GetESConnection(lastReconnectionTime)
+es = GetESConnection()
 
 q=Queue.Queue()
 #start eventCreator threads
