@@ -5,7 +5,6 @@ import siteMapping
 import Queue, os, sys, time
 import threading
 from threading import Thread
-import requests
 import copy
 
 import json
@@ -20,6 +19,8 @@ allhosts.append([('128.142.36.204',61513)])
 allhosts.append([('188.185.227.50',61513)])
 topic = '/topic/perfsonar.summary.histogram-owdelay'
 #topic = '/topic/perfsonar.histogram-owdelay'
+es=None
+
 
 siteMapping.reload()
 
@@ -57,17 +58,17 @@ def connectToAMQ(conns):
 
 def GetESConnection():
     print("make sure we are connected right...")
-    res = requests.get('http://cl-analytics.mwt2.org:9200')
-    print(res.content)
     conn=False
     try:
         es = Elasticsearch([{'host':'cl-analytics.mwt2.org', 'port':9200}])
         conn=True
+        print('connected OK!')
     except es_exceptions.ConnectionError as e:
         print('ConnectionError in GetESConnection: ', e)
     except:
         print('Something seriously wrong happened.')
     if not conn:
+        print('sleeping...')
         time.sleep(70)
         GetESConnection()
     else:
@@ -142,7 +143,7 @@ def eventCreator():
 passfile = open('/afs/cern.ch/user/i/ivukotic/ATLAS-Hadoop/.passfile')
 passwd=passfile.read()
 
-es = GetESConnection()
+#es = GetESConnection()
 
 connectToAMQ(conns)
 
