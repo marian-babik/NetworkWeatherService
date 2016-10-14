@@ -22,12 +22,33 @@ es=None
 
 siteMapping.reload()
 
+conns = []
+
 class MyListener(object):
-    def on_error(self, headers, message):
-        print ('received an error %s' % message)
     def on_message(self, headers, message):
-        # print (message)
         q.put(message)
+    def on_error(self, headers, message):
+        print('received an error %s' % message)
+    def on_heartbeat_timeout(self):
+        print ('AMQ - lost heartbeat. Needs a reconnect!')
+        conn.disconnect()
+    def on_disconnected(self):
+        print ('AMQ - no connection. Needs a reconnect!')
+        conn.disconnect()
+
+def connectToAMQ(conns):
+    for conn in conns:
+        if conn:
+            conn.disconnect()
+    conns=[]
+    for host in allhosts:
+        conn = stomp.Connection(host, user='psatlflume', passcode=passwd.strip() )
+        conn.set_listener('MyConsumer', MyListener())
+        conn.start()
+        conn.connect()
+        conn.subscribe(destination = topic, ack = 'auto', id="1", headers = {})
+        conns.append(conn)
+
 
 def GetESConnection():
     print("make sure we are connected right...")
@@ -110,6 +131,8 @@ def eventCreator():
 passfile = open('/afs/cern.ch/user/i/ivukotic/ATLAS-Hadoop/.passfile')
 passwd=passfile.read()
 
+connectToAMQ(conns)
+
 q=Queue.Queue()
 #start eventCreator threads
 for i in range(1):
@@ -117,13 +140,11 @@ for i in range(1):
      t.daemon = True
      t.start()
 
-for host in allhosts:
-    conn = stomp.Connection(host, user='psatlflume', passcode=passwd.strip() )
-    conn.set_listener('MyConsumer', MyListener())
-    conn.start()
-    conn.connect()
-    conn.subscribe(destination = topic, ack = 'auto', id="1", headers = {})
-
 while(True):
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "qsize:", q.qsize())
+    for conn in conns:
+        if not conn.is_connected():
+            print ('problem with connection. try reconnecting...')
+            connectToAMQ(conns)
+            break
     time.sleep(60)

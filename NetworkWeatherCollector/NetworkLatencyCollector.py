@@ -33,10 +33,11 @@ class MyListener(object):
     def on_error(self, headers, message):
         print('received an error %s' % message)
     def on_heartbeat_timeout(self):
-        print ('lost heartbeat. Needs a reconnect!')
+        print ('AMQ - lost heartbeat. Needs a reconnect!')
         conn.disconnect()
     def on_disconnected(self):
-        print ('no connection. Needs a reconnect!')
+        print ('AMQ - no connection. Needs a reconnect!')
+        conn.disconnect()
 #        id=headers['message-id']
 #        if id in mids:
 #            print (headers, message)
@@ -142,8 +143,6 @@ def eventCreator():
 
 passfile = open('/afs/cern.ch/user/i/ivukotic/ATLAS-Hadoop/.passfile')
 passwd=passfile.read()
-
-#es = GetESConnection()
 
 connectToAMQ(conns)
 
