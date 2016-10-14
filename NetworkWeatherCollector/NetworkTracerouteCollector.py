@@ -32,12 +32,14 @@ class MyListener(object):
         print('received an error %s' % message)
     def on_heartbeat_timeout(self):
         print ('AMQ - lost heartbeat. Needs a reconnect!')
-        conn.disconnect()
+        connectToAMQ()
     def on_disconnected(self):
         print ('AMQ - no connection. Needs a reconnect!')
-        conn.disconnect()
+        connectToAMQ()
 
-def connectToAMQ(conns):
+def connectToAMQ():
+    print('connecting to AMQ')
+    global conns
     for conn in conns:
         if conn:
             conn.disconnect()
@@ -152,7 +154,7 @@ def eventCreator():
 passfile = open('/afs/cern.ch/user/i/ivukotic/ATLAS-Hadoop/.passfile')
 passwd=passfile.read()
 
-connectToAMQ(conns)
+connectToAMQ()
 
 q=Queue.Queue()
 #start eventCreator threads
@@ -163,10 +165,10 @@ for i in range(3):
 
 
 while(True):
+    time.sleep(60)
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),"qsize:", q.qsize()) 
     for conn in conns:
         if not conn.is_connected():
             print ('problem with connection. try reconnecting...')
-            connectToAMQ(conns)
+            connectToAMQ()
             break
-    time.sleep(60)
