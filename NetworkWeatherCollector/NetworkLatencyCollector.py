@@ -26,7 +26,6 @@ siteMapping.reload()
 
 conns = []
 
-#mids={}
 class MyListener(object):
     def on_message(self, headers, message):
         q.put(message)
@@ -34,19 +33,15 @@ class MyListener(object):
         print('received an error %s' % message)
     def on_heartbeat_timeout(self):
         print ('AMQ - lost heartbeat. Needs a reconnect!')
-        conn.disconnect()
+        connectToAMQ()
     def on_disconnected(self):
         print ('AMQ - no connection. Needs a reconnect!')
-        conn.disconnect()
-#        id=headers['message-id']
-#        if id in mids:
-#            print (headers, message)
-#        else:
-#            mids[id]=True
+        connectToAMQ()
 
-def connectToAMQ(conns):
+def connectToAMQ():
     for conn in conns:
         if conn:
+            print('disconnecting first ...')
             conn.disconnect()
     conns=[]
     for host in allhosts:
@@ -144,7 +139,7 @@ def eventCreator():
 passfile = open('/afs/cern.ch/user/i/ivukotic/ATLAS-Hadoop/.passfile')
 passwd=passfile.read()
 
-connectToAMQ(conns)
+connectToAMQ()
 
 q=Queue.Queue()
 #start eventCreator threads
@@ -154,12 +149,11 @@ for i in range(3):
      t.start()
 
 
-
 while(True):
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "qsize:", q.qsize())
     for conn in conns:
         if not conn.is_connected():
             print ('problem with connection. try reconnecting...')
-            connectToAMQ(conns)
+            connectToAMQ()
             break
     time.sleep(60)
