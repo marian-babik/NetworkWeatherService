@@ -39,6 +39,7 @@ class MyListener(object):
         connectToAMQ()
 
 def connectToAMQ():
+    global conns
     for conn in conns:
         if conn:
             print('disconnecting first ...')
@@ -150,10 +151,10 @@ for i in range(3):
 
 
 while(True):
+    time.sleep(60)
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "qsize:", q.qsize())
     for conn in conns:
         if not conn.is_connected():
             print ('problem with connection. try reconnecting...')
             connectToAMQ()
             break
-    time.sleep(60)
