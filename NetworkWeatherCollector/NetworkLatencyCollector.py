@@ -41,7 +41,7 @@ class MyListener(object):
 def connectToAMQ():
     global conns
     for conn in conns:
-        if conn:
+        if conn.is_connected():
             print('disconnecting first ...')
             conn.disconnect()
     conns=[]

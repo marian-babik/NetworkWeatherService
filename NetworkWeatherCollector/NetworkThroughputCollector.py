@@ -40,7 +40,7 @@ def connectToAMQ():
     print('connecting to AMQ')
     global conns
     for conn in conns:
-        if conn:
+        if conn.is_connected():            
             print ('disconnecting first')
             conn.disconnect()
     conns=[]

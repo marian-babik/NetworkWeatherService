@@ -39,7 +39,7 @@ def connectToAMQ():
     print ('connecting to AMQ')
     global conns
     for conn in conns:
-        if conn:
+        if conn.is_connected():
             conn.disconnect()
     conns=[]
     for host in allhosts:
