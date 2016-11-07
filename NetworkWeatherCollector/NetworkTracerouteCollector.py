@@ -12,11 +12,16 @@ from elasticsearch import Elasticsearch, exceptions as es_exceptions
 from elasticsearch import helpers
 
 import stomp
+import socket
 
+addresses=socket.getaddrinfo('netmon-mb.cern.ch',61513)
+ips=set()
+for a in addresses:
+    ips.add(a[4][0])
 allhosts=[]
-allhosts.append([('128.142.36.204',61513)])
-allhosts.append([('188.185.227.50',61513)])
-# topic = '/topic/perfsonar.packet-trace'
+for ip in ips:
+    allhosts.append([(ip,61513)])
+
 topic = '/topic/perfsonar.raw.packet-trace'
 es=None
 
