@@ -14,14 +14,6 @@ from elasticsearch import helpers
 import stomp
 import socket
 
-addresses=socket.getaddrinfo('netmon-mb.cern.ch',61513)
-ips=set()
-for a in addresses:
-    ips.add(a[4][0])
-allhosts=[]
-for ip in ips:
-    allhosts.append([(ip,61513)])
-
 topic = '/topic/perfsonar.summary.packet-loss-rate'
 es=None
 
@@ -48,6 +40,15 @@ def connectToAMQ():
         if conn.is_connected():
             conn.disconnect()
     conns=[]
+
+    addresses=socket.getaddrinfo('netmon-mb.cern.ch',61513)
+    ips=set()
+    for a in addresses:
+        ips.add(a[4][0])
+    allhosts=[]
+    for ip in ips:
+        allhosts.append([(ip,61513)])
+
     for host in allhosts:
         conn = stomp.Connection(host, user='psatlflume', passcode=passwd.strip() )
         conn.set_listener('MyConsumer', MyListener())
