@@ -5,7 +5,6 @@ import siteMapping
 import Queue, os, sys, time
 import threading
 from threading import Thread
-import requests
 import copy
 import json
 from datetime import datetime
@@ -13,34 +12,68 @@ from elasticsearch import Elasticsearch, exceptions as es_exceptions
 from elasticsearch import helpers
 
 import stomp
+import socket
 
-allhosts=[]
-allhosts.append([('128.142.36.204',61513)])
-allhosts.append([('188.185.227.50',61513)])
 topic = '/topic/perfsonar.summary.packet-loss-rate'
-#topic = '/topic/perfsonar.packet-loss-rate'
+es=None
 
 siteMapping.reload()
 
-lastReconnectionTime=0
+conns = []
 
 class MyListener(object):
-    def on_error(self, headers, message):
-        print('received an error %s' % message)
     def on_message(self, headers, message):
         q.put(message)
+    def on_error(self, headers, message):
+        print('received an error %s' % message)
+    def on_heartbeat_timeout(self):
+        print ('AMQ - lost heartbeat. Needs a reconnect!')
+        connectToAMQ()
+    def on_disconnected(self):
+        print ('AMQ - no connection. Needs a reconnect!')
+        connectToAMQ()
 
-def GetESConnection(lastReconnectionTime):
-    if ( time.time()-lastReconnectionTime < 60 ): 
-        return
-    lastReconnectionTime=time.time()
+def connectToAMQ():
+    print ('connecting to AMQ')
+    global conns
+    for conn in conns:
+        if conn.is_connected():
+            conn.disconnect()
+    conns=[]
+
+    addresses=socket.getaddrinfo('netmon-mb.cern.ch',61513)
+    ips=set()
+    for a in addresses:
+        ips.add(a[4][0])
+    allhosts=[]
+    for ip in ips:
+        allhosts.append([(ip,61513)])
+
+    for host in allhosts:
+        conn = stomp.Connection(host, user='psatlflume', passcode=passwd.strip() )
+        conn.set_listener('MyConsumer', MyListener())
+        conn.start()
+        conn.connect()
+        conn.subscribe(destination = topic, ack = 'auto', id="1", headers = {})
+        conns.append(conn)
+
+
+def GetESConnection():
     print("make sure we are connected right...")
-    res = requests.get('http://cl-analytics.mwt2.org:9200')
-    print(res.content)
-    
-    es = Elasticsearch([{'host':'cl-analytics.mwt2.org', 'port':9200}])
-    return es
-
+    conn=False
+    try:
+        es = Elasticsearch([{'host':'cl-analytics.mwt2.org', 'port':9200}])
+        conn=True
+        print ("connected OK!")
+    except es_exceptions.ConnectionError as e:
+        print('ConnectionError in GetESConnection: ', e)
+    except:
+        print('Something seriously wrong happened.')
+    if not conn:
+        time.sleep(70)
+        GetESConnection()
+    else:
+        return es
 
 def eventCreator():
     aLotOfData=[]
@@ -49,10 +82,7 @@ def eventCreator():
         d=q.get()
         m=json.loads(d)
         
-        d = datetime.now()
-        ind="network_weather_2-"+str(d.year)+"."+str(d.month)+"."+str(d.day)
         data = {
-            '_index': ind,
             '_type': 'packet_loss_rate'
         }
         
@@ -81,21 +111,23 @@ def eventCreator():
             if s['summary_window']=='300':
                 results = s['summary_data']
                 for r in results:
-                    data['timestamp']=datetime.utcfromtimestamp(r[0]).isoformat()
+                    dati=datetime.utcfromtimestamp(float(r[0]))
+                    data['_index']="network_weather_2-"+str(dati.year)+"."+str(dati.month)+"."+str(dati.day)
+                    data['timestamp']=r[0]*1000
                     data['packet_loss']=r[1]
                     # print(data)
                     aLotOfData.append(copy.copy(data))
         q.task_done()
-        if tries%10==1:
-            es = GetESConnection(lastReconnectionTime)
+        
+
         if len(aLotOfData)>500:
-            tries += 1
+            reconnect=True
             try:
                 es = Elasticsearch([{'host':'cl-analytics.mwt2.org', 'port':9200}])
                 res = helpers.bulk(es, aLotOfData, raise_on_exception=True,request_timeout=60)
                 print(threading.current_thread().name, "\t inserted:",res[0], '\tErrors:',res[1])
                 aLotOfData=[]
-                tries = 0
+                reconnect=False
             except es_exceptions.ConnectionError as e:
                 print('ConnectionError ', e)
             except es_exceptions.TransportError as e:
@@ -106,13 +138,12 @@ def eventCreator():
                     # print(i)
             except:
                 print('Something seriously wrong happened.')
+            if reconnect: es = GetESConnection()
 
 passfile = open('/afs/cern.ch/user/i/ivukotic/ATLAS-Hadoop/.passfile')
 passwd=passfile.read()
 
-es = GetESConnection(lastReconnectionTime)
-while (not es):
-    es = GetESConnection(lastReconnectionTime)
+connectToAMQ()
 
 q=Queue.Queue()
 #start eventCreator threads
@@ -121,13 +152,11 @@ for i in range(3):
      t.daemon = True
      t.start()
 
-for host in allhosts:
-    conn = stomp.Connection(host, user='psatlflume', passcode=passwd.strip() )
-    conn.set_listener('MyConsumer', MyListener())
-    conn.start()
-    conn.connect()
-    conn.subscribe(destination = topic, ack = 'auto', id="1", headers = {})
-
 while(True):
-    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "qsize:", q.qsize())
     time.sleep(60)
+    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "qsize:", q.qsize())
+    for conn in conns:
+        if not conn.is_connected():
+            print ('problem with connection. try reconnecting...')
+            connectToAMQ()
+            break
