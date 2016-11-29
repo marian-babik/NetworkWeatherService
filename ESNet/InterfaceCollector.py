@@ -70,7 +70,7 @@ def getInterfaceData(i):
         j=req.json()
         
         d = datetime.now()
-        ind="esnet-"+str(d.year)+"."+str(d.month)+"."+str(d.day)
+        ind="esnet-"+str(d.year)+"."+str(d.month)
         data = {
             '_index': ind,
             '_type': 'interface',
