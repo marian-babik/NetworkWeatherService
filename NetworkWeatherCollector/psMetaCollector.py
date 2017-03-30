@@ -5,7 +5,6 @@ import socket
 import time
 import threading
 import copy
-import math
 import json
 from datetime import datetime
 
@@ -15,7 +14,7 @@ import stomp
 
 import siteMapping
 
-topic = '/topic/perfsonar.raw.histogram-owdelay'
+topic = '/topic/perfsonar.summary.meta'
 es = None
 
 siteMapping.reload()
@@ -85,58 +84,17 @@ def eventCreator():
     while True:
         d = q.get()
         m = json.loads(d)
-        data = {
-            '_type': 'latency'
-        }
+        #print m
+        data = {'_type': 'meta', 'timestamp': int(m['timestamp']) * 1000}
 
-        source = m['meta']['source']
-        destination = m['meta']['destination']
-        data['MA'] = m['meta']['measurement_agent']
-        data['src'] = source
-        data['dest'] = destination
-        so = siteMapping.getPS(source)
-        de = siteMapping.getPS(destination)
-        if so is not None:
-            data['srcSite'] = so[0]
-            data['srcVO'] = so[1]
-        if de is not None:
-            data['destSite'] = de[0]
-            data['destVO'] = de[1]
-        data['srcProduction'] = siteMapping.isProductionLatency(source)
-        data['destProduction'] = siteMapping.isProductionLatency(destination)
-        su = m['datapoints']
-        for ts, th in su.iteritems():
-            dati = datetime.utcfromtimestamp(float(ts))
-            data['_index'] = "network_weather_2-" + str(dati.year) + "." + str(dati.month) + "." + str(dati.day)
-            data['timestamp'] = int(float(ts) * 1000)
-            th_fl = dict((float(k), v) for (k, v) in th.items())
-
-            # mean
-            th_mean = sum(k*v for k, v in th_fl.items())/600
-            data['delay_mean'] = th_mean
-            # std dev
-            data['delay_sd'] = math.sqrt(sum((k - th_mean) ** 2 * v for k, v in th_fl.items()) / 600)
-            # median
-            csum = 0
-            ordered_th = [(k, v) for k, v in sorted(th_fl.items())]
-            for index, entry in enumerate(ordered_th):
-                csum += entry[1]
-                if csum > 301:
-                    data['delay_median'] = entry[0]
-                    break
-                elif csum == 300:
-                    data['delay_median'] = entry[0] + ordered_th[index+1][0] / 2
-                    break
-                elif csum == 301 and index == 0:
-                    data['delay_median'] = entry[0]
-                    break
-                elif csum == 301 and index > 0:
-                    data['delay_median'] = entry[0] + ordered_th[index-1][0] / 2
-                    break
-            #print(data)
-            aLotOfData.append(copy.copy(data))
+        dati = datetime.utcfromtimestamp(m['timestamp'])
+        data['_index'] = "network_weather_2-" + str(dati.year) + "." + str(dati.month) + "." + str(dati.day)
+        data['toolkit_summary'] = copy.copy(m)
+        #print(data)
+        aLotOfData.append(copy.copy(data))
         q.task_done()
-        if len(aLotOfData) > 500:
+
+        if len(aLotOfData) > 10:
             reconnect = True
             # print('writing out data...')
             try:

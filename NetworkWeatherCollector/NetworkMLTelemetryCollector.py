@@ -5,7 +5,6 @@ import socket
 import time
 import threading
 import copy
-import math
 import json
 from datetime import datetime
 
@@ -15,7 +14,7 @@ import stomp
 
 import siteMapping
 
-topic = '/topic/perfsonar.raw.histogram-owdelay'
+topic = '/topic/telemetry.perfsonar'
 es = None
 
 siteMapping.reload()
@@ -86,7 +85,7 @@ def eventCreator():
         d = q.get()
         m = json.loads(d)
         data = {
-            '_type': 'latency'
+            '_type': 'link_utilization'
         }
 
         source = m['meta']['source']
@@ -104,35 +103,20 @@ def eventCreator():
             data['destVO'] = de[1]
         data['srcProduction'] = siteMapping.isProductionLatency(source)
         data['destProduction'] = siteMapping.isProductionLatency(destination)
-        su = m['datapoints']
-        for ts, th in su.iteritems():
-            dati = datetime.utcfromtimestamp(float(ts))
-            data['_index'] = "network_weather_2-" + str(dati.year) + "." + str(dati.month) + "." + str(dati.day)
-            data['timestamp'] = int(float(ts) * 1000)
-            th_fl = dict((float(k), v) for (k, v) in th.items())
-
-            # mean
-            th_mean = sum(k*v for k, v in th_fl.items())/600
-            data['delay_mean'] = th_mean
-            # std dev
-            data['delay_sd'] = math.sqrt(sum((k - th_mean) ** 2 * v for k, v in th_fl.items()) / 600)
-            # median
-            csum = 0
-            ordered_th = [(k, v) for k, v in sorted(th_fl.items())]
-            for index, entry in enumerate(ordered_th):
-                csum += entry[1]
-                if csum > 301:
-                    data['delay_median'] = entry[0]
-                    break
-                elif csum == 300:
-                    data['delay_median'] = entry[0] + ordered_th[index+1][0] / 2
-                    break
-                elif csum == 301 and index == 0:
-                    data['delay_median'] = entry[0]
-                    break
-                elif csum == 301 and index > 0:
-                    data['delay_median'] = entry[0] + ordered_th[index-1][0] / 2
-                    break
+        if 'summaries' not in m:
+            q.task_done()
+            print(threading.current_thread().name, "no summaries found in the message")
+            continue
+        su = m['summaries']
+        for s in su:
+            if s['summary_window'] == '60' and s['summary_type'] == 'statistics':
+                results = s['summary_data']
+                # print(results)
+                for r in results:
+                    dati = datetime.utcfromtimestamp(float(r[0]))
+                    data['_index'] = "network_weather_2-" + str(dati.year) + "." + str(dati.month) + "." + str(dati.day)
+                    data['timestamp'] = r[0] * 1000
+                    data['sim_util'] = r[1]['ml']
             #print(data)
             aLotOfData.append(copy.copy(data))
         q.task_done()
