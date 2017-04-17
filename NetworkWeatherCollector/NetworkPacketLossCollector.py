@@ -3,10 +3,10 @@
 import Queue
 import time
 import threading
+from threading import Thread
 import socket
 import copy
 import json
-from threading import Thread
 from datetime import datetime
 
 import stomp
@@ -114,7 +114,7 @@ def eventCreator():
         # print(su)
         for ts, th in su.iteritems():
             dati = datetime.utcfromtimestamp(float(ts))
-            data['_index'] = "network_weather_2-" + str(dati.year) + "." + str(dati.month) + "." + str(dati.day)
+            data['_index'] = "network_weather-test-" + str(dati.year) + "." + str(dati.month) + "." + str(dati.day)
             data['timestamp'] = int(float(ts) * 1000)
             data['packet_loss'] = th
             # print(data)

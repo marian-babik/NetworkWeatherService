@@ -30,11 +30,11 @@ class MyListener(object):
         print('received an error %s' % message)
 
     def on_heartbeat_timeout(self):
-        print ('AMQ - lost heartbeat. Needs a reconnect!')
+        print('AMQ - lost heartbeat. Needs a reconnect!')
         connectToAMQ()
 
     def on_disconnected(self):
-        print ('AMQ - no connection. Needs a reconnect!')
+        print('AMQ - no connection. Needs a reconnect!')
         connectToAMQ()
 
 
@@ -55,7 +55,8 @@ def connectToAMQ():
         allhosts.append([(ip, 61513)])
 
     for host in allhosts:
-        conn = stomp.Connection(host, user='psatlflume', passcode=passwd.strip())
+        conn = stomp.Connection(host, user='psatlflume',
+                                passcode=passwd.strip())
         conn.set_listener('MyConsumer', MyListener())
         conn.start()
         conn.connect()
@@ -67,7 +68,7 @@ def GetESConnection():
     print("make sure we are connected right...")
     try:
         es = Elasticsearch([{'host': 'cl-analytics.mwt2.org', 'port': 9200}])
-        print ("connected OK!")
+        print("connected OK!")
     except es_exceptions.ConnectionError as e:
         print('ConnectionError in GetESConnection: ', e)
     except:
@@ -102,10 +103,11 @@ def eventCreator():
         ts = m['data']['timestamp']
         th = m['data']['throughput']
         dati = datetime.utcfromtimestamp(float(ts))
-        data['_index'] = "network_weather_2-" + str(dati.year) + "." + str(dati.month) + "." + str(dati.day)
+        data['_index'] = "network_weather-test-" + \
+            str(dati.year) + "." + str(dati.month) + "." + str(dati.day)
         data['timestamp'] = int(float(ts) * 1000)
         data['utilization'] = th
-        #print(data)
+        # print(data)
         aLotOfData.append(copy.copy(data))
 
         q.task_done()
@@ -113,8 +115,10 @@ def eventCreator():
             reconnect = True
             print('writing out data...')
             try:
-                res = helpers.bulk(es, aLotOfData, raise_on_exception=True, request_timeout=60)
-                print(threading.current_thread().name, "\t inserted:", res[0], '\tErrors:', res[1])
+                res = helpers.bulk(
+                    es, aLotOfData, raise_on_exception=True, request_timeout=60)
+                print(threading.current_thread().name,
+                      "\t inserted:", res[0], '\tErrors:', res[1])
                 aLotOfData = []
                 reconnect = False
             except es_exceptions.ConnectionError as e:
@@ -148,6 +152,6 @@ while True:
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "qsize:", q.qsize())
     for conn in conns:
         if not conn.is_connected():
-            print ('problem with connection. try reconnecting...')
+            print('problem with connection. try reconnecting...')
             connectToAMQ()
             break

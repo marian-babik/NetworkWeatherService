@@ -1,15 +1,15 @@
 #!/bin/sh
 #
-# /etc/init.d/nw_traceroute
+# /etc/init.d/nw_latency
 #
 # chkconfig: - 64 36
-# description: PS Traceroute Collector
+# description: PS Latency Collector
  
 # Source init functions
 . /etc/rc.d/init.d/functions
  
  
-prog="NetworkTracerouteCollector.py"
+prog="NetworkLHCOPNCollector.py"
 prefix="/afs/cern.ch/user/i/ivukotic/NetworkWeatherService/NetworkWeatherCollector"
 exec_prefix="${prefix}"
 prog_bin="${exec_prefix}/${prog}"
