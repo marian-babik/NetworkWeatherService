@@ -96,17 +96,17 @@ def eventCreator():
         source = m['data']['src_site']
         destination = m['data']['dst_site']
         data['MA'] = 'capc.cern'
-        data['src'] = source
-        data['dest'] = destination
-        data['src_site'] = source
-        data['dst_site'] = destination
+        # data['src'] = source
+        # data['dest'] = destination
+        data['srcSite'] = source
+        data['dstSite'] = destination
         ts = m['data']['timestamp']
         th = m['data']['throughput']
         dati = datetime.utcfromtimestamp(float(ts))
         data['_index'] = "network_weather-test-" + \
             str(dati.year) + "." + str(dati.month) + "." + str(dati.day)
         data['timestamp'] = int(float(ts) * 1000)
-        data['utilization'] = th
+        data['utilization'] = int(th)
         # print(data)
         aLotOfData.append(copy.copy(data))
 
