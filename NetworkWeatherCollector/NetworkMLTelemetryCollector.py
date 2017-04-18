@@ -104,7 +104,7 @@ def eventCreator():
             aLotOfData.append(copy.copy(data))
         q.task_done()
         if len(aLotOfData) > 500:
-             succ = tools.bulk_index(aLotOfData, es_conn=es_conn, thread_name=threading.current_thread().name)
+            succ = tools.bulk_index(aLotOfData, es_conn=es_conn, thread_name=threading.current_thread().name)
             if succ is True:
                 aLotOfData = []
 

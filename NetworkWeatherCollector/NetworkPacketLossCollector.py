@@ -10,11 +10,8 @@ import json
 from datetime import datetime
 
 import stomp
-#from elasticsearch import Elasticsearch, exceptions as es_exceptions
-#from elasticsearch import helpers
-
-import siteMapping
 import tools
+import siteMapping
 
 topic = '/topic/perfsonar.raw.packet-loss-rate'
 es = None
@@ -64,26 +61,8 @@ def connectToAMQ():
         conn.subscribe(destination=topic, ack='auto', id="1", headers={})
         conns.append(conn)
 
-
-# def GetESConnection():
-#     print("make sure we are connected right...")
-#     try:
-#         es = Elasticsearch([{'host': 'cl-analytics.mwt2.org', 'port': 9200}])
-#         print ("connected OK!")
-#     except es_exceptions.ConnectionError as e:
-#         print('ConnectionError in GetESConnection: ', e)
-#     except:
-#         print('Something seriously wrong happened.')
-#     else:
-#         return es
-
-#     time.sleep(70)
-#     GetESConnection()
-
-
 def eventCreator():
     aLotOfData = []
-    tries = 0
     es_conn = tools.get_es_connection()
     while True:
         d = q.get()
