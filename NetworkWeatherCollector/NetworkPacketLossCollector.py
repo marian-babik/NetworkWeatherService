@@ -84,6 +84,7 @@ def connectToAMQ():
 def eventCreator():
     aLotOfData = []
     tries = 0
+    es = tools.get_es_connection()
     while True:
         d = q.get()
         m = json.loads(d)
@@ -123,7 +124,7 @@ def eventCreator():
         q.task_done()
 
         if len(aLotOfData) > 500:
-            tools.bulk_index(aLotOfData)
+            tools.bulk_index(aLotOfData, es=es, thread_name=threading.current_thread().name)
             # reconnect = True
             # try:
             #     es = Elasticsearch([{'host': 'cl-analytics.mwt2.org', 'port': 9200}])

@@ -1,40 +1,48 @@
+import time
+
 from elasticsearch import Elasticsearch, exceptions as es_exceptions
 from elasticsearch import helpers
 
-def GetESConnection():
+def get_es_connection():
+    """
+    establishes es connection.
+    """
     print("make sure we are connected right...")
     try:
-        es = Elasticsearch([{'host': 'cl-analytics.mwt2.org', 'port': 9200}])
-        print ("connected OK!")
-    except es_exceptions.ConnectionError as e:
-        print('ConnectionError in GetESConnection: ', e)
+        es_conn = Elasticsearch([{'host': 'cl-analytics.mwt2.org', 'port': 9200}])
+        print("connected OK!")
+    except es_exceptions.ConnectionError as error:
+        print('ConnectionError in GetESConnection: ', error)
     except:
         print('Something seriously wrong happened.')
     else:
-        return es
+        return es_conn
 
     time.sleep(70)
-    GetESConnection()
+    get_es_connection()
 
 
-def bulk_index(data , es=None, thread_name=''):
-	reconnect = True
-    if es is None:
-        es = GetESConnection()
+def bulk_index(data, es_conn=None, thread_name=''):
+    """
+    sends the data to ES for indexing and if successful empties the list.
+    """
+    reconnect = True
+    if es_conn is None:
+        es_conn = get_es_connection()
     try:
-        res = helpers.bulk(es, data, raise_on_exception=True, request_timeout=60)
+        res = helpers.bulk(es_conn, data, raise_on_exception=True, request_timeout=60)
         print(thread_name, "inserted:", res[0], 'errors:', res[1])
         data = []
         reconnect = False
-    except es_exceptions.ConnectionError as e:
-        print('ConnectionError ', e)
-    except es_exceptions.TransportError as e:
-        print('TransportError ', e)
-    except helpers.BulkIndexError as e:
-        print(e[0])
-      # for i in e[1]:
+    except es_exceptions.ConnectionError as error:
+        print('ConnectionError ', error)
+    except es_exceptions.TransportError as error:
+        print('TransportError ', error)
+    except helpers.BulkIndexError as error:
+        print(error[0])
+      # for i in error[1]:
       # print(i)
     except:
         print('Something seriously wrong happened.')
     if reconnect:
-        es = GetESConnection()
+        es_conn = get_es_connection()
