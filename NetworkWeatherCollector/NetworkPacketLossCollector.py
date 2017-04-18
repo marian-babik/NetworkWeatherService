@@ -10,10 +10,11 @@ import json
 from datetime import datetime
 
 import stomp
-from elasticsearch import Elasticsearch, exceptions as es_exceptions
-from elasticsearch import helpers
+#from elasticsearch import Elasticsearch, exceptions as es_exceptions
+#from elasticsearch import helpers
 
 import siteMapping
+import tools
 
 topic = '/topic/perfsonar.raw.packet-loss-rate'
 es = None
@@ -64,20 +65,20 @@ def connectToAMQ():
         conns.append(conn)
 
 
-def GetESConnection():
-    print("make sure we are connected right...")
-    try:
-        es = Elasticsearch([{'host': 'cl-analytics.mwt2.org', 'port': 9200}])
-        print ("connected OK!")
-    except es_exceptions.ConnectionError as e:
-        print('ConnectionError in GetESConnection: ', e)
-    except:
-        print('Something seriously wrong happened.')
-    else:
-        return es
+# def GetESConnection():
+#     print("make sure we are connected right...")
+#     try:
+#         es = Elasticsearch([{'host': 'cl-analytics.mwt2.org', 'port': 9200}])
+#         print ("connected OK!")
+#     except es_exceptions.ConnectionError as e:
+#         print('ConnectionError in GetESConnection: ', e)
+#     except:
+#         print('Something seriously wrong happened.')
+#     else:
+#         return es
 
-    time.sleep(70)
-    GetESConnection()
+#     time.sleep(70)
+#     GetESConnection()
 
 
 def eventCreator():
@@ -122,25 +123,26 @@ def eventCreator():
         q.task_done()
 
         if len(aLotOfData) > 500:
-            reconnect = True
-            try:
-                es = Elasticsearch([{'host': 'cl-analytics.mwt2.org', 'port': 9200}])
-                res = helpers.bulk(es, aLotOfData, raise_on_exception=True, request_timeout=60)
-                print(threading.current_thread().name, "\t inserted:", res[0], '\tErrors:', res[1])
-                aLotOfData = []
-                reconnect = False
-            except es_exceptions.ConnectionError as e:
-                print('ConnectionError ', e)
-            except es_exceptions.TransportError as e:
-                print('TransportError ', e)
-            except helpers.BulkIndexError as e:
-                print(e[0])
-                # for i in e[1]:
-                # print(i)
-            except:
-                print('Something seriously wrong happened.')
-            if reconnect:
-                es = GetESConnection()
+            tools.bulk_index(aLotOfData)
+            # reconnect = True
+            # try:
+            #     es = Elasticsearch([{'host': 'cl-analytics.mwt2.org', 'port': 9200}])
+            #     res = helpers.bulk(es, aLotOfData, raise_on_exception=True, request_timeout=60)
+            #     print(threading.current_thread().name, "\t inserted:", res[0], '\tErrors:', res[1])
+            #     aLotOfData = []
+            #     reconnect = False
+            # except es_exceptions.ConnectionError as e:
+            #     print('ConnectionError ', e)
+            # except es_exceptions.TransportError as e:
+            #     print('TransportError ', e)
+            # except helpers.BulkIndexError as e:
+            #     print(e[0])
+            #     # for i in e[1]:
+            #     # print(i)
+            # except:
+            #     print('Something seriously wrong happened.')
+            # if reconnect:
+            #     es = GetESConnection()
 
 
 passfile = open('/afs/cern.ch/user/i/ivukotic/ATLAS-Hadoop/.passfile')
