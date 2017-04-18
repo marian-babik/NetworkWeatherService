@@ -106,9 +106,9 @@ def eventCreator():
             data['destVO'] = de[1]
         data['srcProduction'] = siteMapping.isProductionLatency(source)
         data['destProduction'] = siteMapping.isProductionLatency(destination)
-        if 'summaries' not in m:
+        if 'datapoints' not in m:
             q.task_done()
-            print(threading.current_thread().name, "no summaries found in the message")
+            print(threading.current_thread().name, "no datapoints found in the message")
             continue
         su = m['datapoints']
         # print(su)
