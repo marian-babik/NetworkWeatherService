@@ -57,7 +57,7 @@ def connectToAMQ():
         allhosts.append([(ip, 61513)])
 
     for host in allhosts:
-        conn = stomp.Connection(host, user='psatlflume', passcode=passwd.strip())
+        conn = stomp.Connection(host, user='psatlflume', passcode=AMQ_PASS)
         conn.set_listener('MyConsumer', MyListener())
         conn.start()
         conn.connect()
@@ -124,30 +124,12 @@ def eventCreator():
         q.task_done()
 
         if len(aLotOfData) > 500:
-            tools.bulk_index(aLotOfData, es_conn=es_conn, thread_name=threading.current_thread().name)
-            # reconnect = True
-            # try:
-            #     es = Elasticsearch([{'host': 'cl-analytics.mwt2.org', 'port': 9200}])
-            #     res = helpers.bulk(es, aLotOfData, raise_on_exception=True, request_timeout=60)
-            #     print(threading.current_thread().name, "\t inserted:", res[0], '\tErrors:', res[1])
-            #     aLotOfData = []
-            #     reconnect = False
-            # except es_exceptions.ConnectionError as e:
-            #     print('ConnectionError ', e)
-            # except es_exceptions.TransportError as e:
-            #     print('TransportError ', e)
-            # except helpers.BulkIndexError as e:
-            #     print(e[0])
-            #     # for i in e[1]:
-            #     # print(i)
-            # except:
-            #     print('Something seriously wrong happened.')
-            # if reconnect:
-            #     es = GetESConnection()
+            succ = tools.bulk_index(aLotOfData, es_conn=es_conn, thread_name=threading.current_thread().name)
+            if succ is True:
+                aLotOfData = []
 
 
-passfile = open('/afs/cern.ch/user/i/ivukotic/ATLAS-Hadoop/.passfile')
-passwd = passfile.read()
+AMQ_PASS = tools.get_pass()
 
 connectToAMQ()
 
@@ -163,6 +145,6 @@ while True:
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "qsize:", q.qsize())
     for conn in conns:
         if not conn.is_connected():
-            print ('problem with connection. try reconnecting...')
+            print('problem with connection. try reconnecting...')
             connectToAMQ()
             break

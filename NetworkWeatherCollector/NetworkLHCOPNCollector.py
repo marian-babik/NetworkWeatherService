@@ -53,8 +53,7 @@ def connectToAMQ():
         allhosts.append([(ip, 61513)])
 
     for host in allhosts:
-        conn = stomp.Connection(host, user='psatlflume',
-                                passcode=passwd.strip())
+        conn = stomp.Connection(host, user='psatlflume', passcode=AMQ_PASS)
         conn.set_listener('MyConsumer', MyListener())
         conn.start()
         conn.connect()
@@ -97,11 +96,11 @@ def eventCreator():
 
         q.task_done()
         if len(aLotOfData) > 10:
-            tools.bulk_index(aLotOfData, es_conn=es_conn, thread_name=threading.current_thread().name)
+            succ = tools.bulk_index(aLotOfData, es_conn=es_conn, thread_name=threading.current_thread().name)
+            if succ is True:
+                aLotOfData = []
 
-
-passfile = open('/afs/cern.ch/user/i/ivukotic/ATLAS-Hadoop/.passfile')
-passwd = passfile.read()
+AMQ_PASS = tools.get_pass()
 
 connectToAMQ()
 

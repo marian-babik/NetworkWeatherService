@@ -9,15 +9,13 @@ from threading import Thread
 import copy
 import json
 from datetime import datetime
-from elasticsearch import Elasticsearch, exceptions as es_exceptions
-from elasticsearch import helpers
 
 import stomp
 
 import siteMapping
+import tools
 
 topic = '/topic/perfsonar.raw.packet-retransmits'
-es = None
 
 siteMapping.reload()
 
@@ -58,36 +56,16 @@ def connectToAMQ():
         allhosts.append([(ip, 61513)])
 
     for host in allhosts:
-        conn = stomp.Connection(host, user='psatlflume',
-                                passcode=passwd.strip())
+        conn = stomp.Connection(host, user='psatlflume', passcode=AMQ_PASS)
         conn.set_listener('MyConsumer', MyListener())
         conn.start()
         conn.connect()
         conn.subscribe(destination=topic, ack='auto', id="1", headers={})
         conns.append(conn)
 
-
-def GetESConnection():
-    print("make sure we are connected right...")
-    conn = False
-    try:
-        es = Elasticsearch([{'host': 'cl-analytics.mwt2.org', 'port': 9200}])
-        conn = True
-        print('connected OK')
-    except es_exceptions.ConnectionError as e:
-        print('ConnectionError in GetESConnection: ', e)
-    except:
-        print('Something seriously wrong happened.')
-    if not conn:
-        time.sleep(70)
-        GetESConnection()
-    else:
-        return es
-
-
 def eventCreator():
     aLotOfData = []
-    tries = 0
+    es_conn = tools.get_es_connection()
     while(True):
         d = q.get()
         m = json.loads(d)
@@ -129,31 +107,11 @@ def eventCreator():
         q.task_done()
 
         if len(aLotOfData) > 100:
-            reconnect = True
-            try:
-                res = helpers.bulk(
-                    es, aLotOfData, raise_on_exception=False, request_timeout=60)
-                print(threading.current_thread().name,
-                      "\t inserted:", res[0], '\tErrors:', res[1])
+            succ = tools.bulk_index(aLotOfData, es_conn=es_conn, thread_name=threading.current_thread().name)
+            if succ is True:
                 aLotOfData = []
-                reconnect = False
-            except es_exceptions.ConnectionError as e:
-                print('ConnectionError ', e)
-            except es_exceptions.TransportError as e:
-                print('TransportError ', e)
-            except helpers.BulkIndexError as e:
-                print(e[0])
-                print(e[1][0])
-                # for i in e[1]:
-                #    print(i)
-            except:
-                print('Something seriously wrong happened. ')
-            if reconnect:
-                es = GetESConnection()
 
-
-passfile = open('/afs/cern.ch/user/i/ivukotic/ATLAS-Hadoop/.passfile')
-passwd = passfile.read()
+AMQ_PASS = tools.get_pass()
 
 connectToAMQ()
 

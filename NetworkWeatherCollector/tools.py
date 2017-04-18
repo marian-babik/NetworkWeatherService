@@ -24,16 +24,16 @@ def get_es_connection():
 
 def bulk_index(data, es_conn=None, thread_name=''):
     """
-    sends the data to ES for indexing and if successful empties the list.
+    sends the data to ES for indexing.
+    if successful returns True.
     """
-    reconnect = True
+    success = False
     if es_conn is None:
         es_conn = get_es_connection()
     try:
         res = helpers.bulk(es_conn, data, raise_on_exception=True, request_timeout=60)
         print(thread_name, "inserted:", res[0], 'errors:', res[1])
-        data = []
-        reconnect = False
+        success = True
     except es_exceptions.ConnectionError as error:
         print('ConnectionError ', error)
     except es_exceptions.TransportError as error:
@@ -44,5 +44,10 @@ def bulk_index(data, es_conn=None, thread_name=''):
       # print(i)
     except:
         print('Something seriously wrong happened.')
-    if reconnect:
-        es_conn = get_es_connection()
+    return success
+
+def get_pass():
+    """ read pass from file """
+    passfile = open('/afs/cern.ch/user/i/ivukotic/ATLAS-Hadoop/.passfile')
+    return passfile.read().strip()
+
