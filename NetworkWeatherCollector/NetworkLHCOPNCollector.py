@@ -80,10 +80,8 @@ def eventCreator():
         source = m['data']['src_site']
         destination = m['data']['dst_site']
         data['MA'] = 'capc.cern'
-        # data['src'] = source
-        # data['dest'] = destination
-        data['srcSite'] = source
-        data['dstSite'] = destination
+        data['srcInterface'] = source
+        data['dstInterface'] = destination
         ts = m['data']['timestamp']
         th = m['data']['throughput']
         dati = datetime.utcfromtimestamp(float(ts))
