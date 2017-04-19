@@ -22,14 +22,14 @@ start()
        echo -n $"Starting $prog: "
        nohup $prog_bin 2>&1 > /var/log/${prog}.log & echo $! > $PIDFILE
        daemon --pidfile $PIDFILE
-       [ -f $PIDFILE ] && success $"$prog startup" || failure $"$prog-$title startup"
+       [ -f $PIDFILE ] && success $"$prog startup" || failure $"$prog startup"
        echo
 }
  
 stop()
 {
-       echo -n $"Shutting down $prog-$title: "
-       [ -f $PIDFILE ] && killproc -p `echo $PIDFILE` || success $"$prog-$title shutdown"
+       echo -n $"Shutting down $prog: "
+       [ -f $PIDFILE ] && killproc -p `echo $PIDFILE` || success $"$prog shutdown"
        echo
 }
  
@@ -38,14 +38,14 @@ status()
        if [ -f $PIDFILE ]; then
          kill -0 `cat $PIDFILE`
          if [ $? -eq 0 ]; then
-           echo "$prog-$title is running (pid `cat $PIDFILE`)"
+           echo "$prog is running (pid `cat $PIDFILE`)"
            return 0
          else
            echo "process dead but pidfile exists"
            return 1
          fi
        else
-         echo "$prog-$title is stopped"
+         echo "$prog is stopped"
          return 3
        fi
 }

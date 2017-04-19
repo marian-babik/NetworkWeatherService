@@ -3,16 +3,14 @@
 import Queue
 import time
 import threading
+from threading import Thread
 import socket
 import copy
 import json
-from threading import Thread
 from datetime import datetime
 
 import stomp
-from elasticsearch import Elasticsearch, exceptions as es_exceptions
-from elasticsearch import helpers
-
+import tools
 import siteMapping
 
 topic = '/topic/perfsonar.raw.packet-loss-rate'
@@ -56,33 +54,16 @@ def connectToAMQ():
         allhosts.append([(ip, 61513)])
 
     for host in allhosts:
-        conn = stomp.Connection(host, user='psatlflume', passcode=passwd.strip())
+        conn = stomp.Connection(host, user='psatlflume', passcode=AMQ_PASS)
         conn.set_listener('MyConsumer', MyListener())
         conn.start()
         conn.connect()
         conn.subscribe(destination=topic, ack='auto', id="1", headers={})
         conns.append(conn)
 
-
-def GetESConnection():
-    print("make sure we are connected right...")
-    try:
-        es = Elasticsearch([{'host': 'cl-analytics.mwt2.org', 'port': 9200}])
-        print ("connected OK!")
-    except es_exceptions.ConnectionError as e:
-        print('ConnectionError in GetESConnection: ', e)
-    except:
-        print('Something seriously wrong happened.')
-    else:
-        return es
-
-    time.sleep(70)
-    GetESConnection()
-
-
 def eventCreator():
     aLotOfData = []
-    tries = 0
+    es_conn = tools.get_es_connection()
     while True:
         d = q.get()
         m = json.loads(d)
@@ -106,15 +87,15 @@ def eventCreator():
             data['destVO'] = de[1]
         data['srcProduction'] = siteMapping.isProductionLatency(source)
         data['destProduction'] = siteMapping.isProductionLatency(destination)
-        if 'summaries' not in m:
+        if 'datapoints' not in m:
             q.task_done()
-            print(threading.current_thread().name, "no summaries found in the message")
+            print(threading.current_thread().name, "no datapoints found in the message")
             continue
         su = m['datapoints']
         # print(su)
         for ts, th in su.iteritems():
             dati = datetime.utcfromtimestamp(float(ts))
-            data['_index'] = "network_weather_2-" + str(dati.year) + "." + str(dati.month) + "." + str(dati.day)
+            data['_index'] = "network_weather-test-" + str(dati.year) + "." + str(dati.month) + "." + str(dati.day)
             data['timestamp'] = int(float(ts) * 1000)
             data['packet_loss'] = th
             # print(data)
@@ -122,29 +103,12 @@ def eventCreator():
         q.task_done()
 
         if len(aLotOfData) > 500:
-            reconnect = True
-            try:
-                es = Elasticsearch([{'host': 'cl-analytics.mwt2.org', 'port': 9200}])
-                res = helpers.bulk(es, aLotOfData, raise_on_exception=True, request_timeout=60)
-                print(threading.current_thread().name, "\t inserted:", res[0], '\tErrors:', res[1])
+            succ = tools.bulk_index(aLotOfData, es_conn=es_conn, thread_name=threading.current_thread().name)
+            if succ is True:
                 aLotOfData = []
-                reconnect = False
-            except es_exceptions.ConnectionError as e:
-                print('ConnectionError ', e)
-            except es_exceptions.TransportError as e:
-                print('TransportError ', e)
-            except helpers.BulkIndexError as e:
-                print(e[0])
-                # for i in e[1]:
-                # print(i)
-            except:
-                print('Something seriously wrong happened.')
-            if reconnect:
-                es = GetESConnection()
 
 
-passfile = open('/afs/cern.ch/user/i/ivukotic/ATLAS-Hadoop/.passfile')
-passwd = passfile.read()
+AMQ_PASS = tools.get_pass()
 
 connectToAMQ()
 
@@ -160,6 +124,6 @@ while True:
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "qsize:", q.qsize())
     for conn in conns:
         if not conn.is_connected():
-            print ('problem with connection. try reconnecting...')
+            print('problem with connection. try reconnecting...')
             connectToAMQ()
             break
