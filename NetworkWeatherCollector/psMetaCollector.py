@@ -8,14 +8,11 @@ import copy
 import json
 from datetime import datetime
 
-from elasticsearch import Elasticsearch, exceptions as es_exceptions
-from elasticsearch import helpers
 import stomp
-
 import siteMapping
+import tools
 
 topic = '/topic/perfsonar.summary.meta'
-es = None
 
 siteMapping.reload()
 
@@ -55,7 +52,7 @@ def connectToAMQ():
         allhosts.append([(ip, 61513)])
 
     for host in allhosts:
-        conn = stomp.Connection(host, user='psatlflume', passcode=passwd.strip())
+        conn = stomp.Connection(host, user='psatlflume', passcode=AMQ_PASS)
         conn.set_listener('MyConsumer', MyListener())
         conn.start()
         conn.connect()
@@ -63,24 +60,9 @@ def connectToAMQ():
         conns.append(conn)
 
 
-def GetESConnection():
-    print("make sure we are connected right...")
-    try:
-        es = Elasticsearch([{'host': 'cl-analytics.mwt2.org', 'port': 9200}])
-        print ("connected OK!")
-    except es_exceptions.ConnectionError as e:
-        print('ConnectionError in GetESConnection: ', e)
-    except:
-        print('Something seriously wrong happened.')
-    else:
-        return es
-
-    time.sleep(70)
-    GetESConnection()
-
-
 def eventCreator():
     aLotOfData = []
+    es_conn = tools.get_es_connection()
     while True:
         d = q.get()
         m = json.loads(d)
@@ -88,36 +70,18 @@ def eventCreator():
         data = {'_type': 'meta', 'timestamp': int(m['timestamp']) * 1000}
 
         dati = datetime.utcfromtimestamp(m['timestamp'])
-        data['_index'] = "network_weather_2-" + str(dati.year) + "." + str(dati.month) + "." + str(dati.day)
+        data['_index'] = "network_weather-test-" + str(dati.year) + "." + str(dati.month) + "." + str(dati.day)
         data['toolkit_summary'] = copy.copy(m)
         #print(data)
         aLotOfData.append(copy.copy(data))
         q.task_done()
 
         if len(aLotOfData) > 10:
-            reconnect = True
-            # print('writing out data...')
-            try:
-                res = helpers.bulk(es, aLotOfData, raise_on_exception=True, request_timeout=60)
-                print(threading.current_thread().name, "\t inserted:", res[0], '\tErrors:', res[1])
+            succ = tools.bulk_index(aLotOfData, es_conn=es_conn, thread_name=threading.current_thread().name)
+            if succ is True:
                 aLotOfData = []
-                reconnect = False
-            except es_exceptions.ConnectionError as e:
-                print('ConnectionError ', e)
-            except es_exceptions.TransportError as e:
-                print('TransportError ', e)
-            except helpers.BulkIndexError as e:
-                print(e[0])
-                # for i in e[1]:
-                # print(i)
-            except:
-                print('Something seriously wrong happened.')
-            if reconnect:
-                es = GetESConnection()
 
-
-passfile = open('/afs/cern.ch/user/i/ivukotic/ATLAS-Hadoop/.passfile')
-passwd = passfile.read()
+AMQ_PASS = tools.get_pass()
 
 connectToAMQ()
 

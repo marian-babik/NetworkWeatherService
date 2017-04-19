@@ -11,7 +11,6 @@ import json
 from datetime import datetime
 
 import stomp
-
 import siteMapping
 import tools
 
