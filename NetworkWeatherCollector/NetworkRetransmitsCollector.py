@@ -66,7 +66,7 @@ def connectToAMQ():
 def eventCreator():
     aLotOfData = []
     es_conn = tools.get_es_connection()
-    while(True):
+    while True:
         d = q.get()
         m = json.loads(d)
 
