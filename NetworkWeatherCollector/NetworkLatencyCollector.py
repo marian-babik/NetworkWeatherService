@@ -88,7 +88,7 @@ def eventCreator():
         su = m['datapoints']
         for ts, th in su.iteritems():
             dati = datetime.utcfromtimestamp(float(ts))
-            data['_index'] = "network_weather-test-" + str(dati.year) + "." + str(dati.month) + "." + str(dati.day)
+            data['_index'] = "network_weather-" + str(dati.year) + "." + str(dati.month) + "." + str(dati.day)
             data['timestamp'] = int(float(ts) * 1000)
             th_fl = dict((float(k), v) for (k, v) in th.items())
 
