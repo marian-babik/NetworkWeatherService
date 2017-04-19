@@ -105,7 +105,7 @@ def eventCreator():
         data['_index'] = "network_weather_2-" + str(dati.year) + "." + str(dati.month) + "." + str(dati.day)
         data['timestamp'] = int(float(ts) * 1000)
         data['utilization'] = th
-        print(data)
+        #print(data)
         aLotOfData.append(copy.copy(data))
 
         q.task_done()
