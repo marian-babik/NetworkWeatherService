@@ -119,21 +119,29 @@ def eventCreator():
             # median
             csum = 0
             ordered_th = [(k, v) for k, v in sorted(th_fl.items())]
-            for index, entry in enumerate(ordered_th):
-                csum += entry[1]
-                if csum > 301:
-                    data['delay_median'] = entry[0]
-                    break
-                elif csum == 300:
-                    data['delay_median'] = entry[0] + ordered_th[index+1][0] / 2
-                    break
-                elif csum == 301 and index == 0:
-                    data['delay_median'] = entry[0]
-                    break
-                elif csum == 301 and index > 0:
-                    data['delay_median'] = entry[0] + ordered_th[index-1][0] / 2
-                    break
-            #print(data)
+            samples = sum([v for k, v in ordered_th])
+            midpoint = samples // 2
+            if samples % 2 == 0:  # even number of samples
+                for index, entry in enumerate(ordered_th):
+                    csum += entry[1]
+                    if csum > midpoint+1:
+                        data['delay_median'] = entry[0]
+                        break
+                    elif csum == midpoint:
+                        data['delay_median'] = entry[0] + ordered_th[index+1][0] / 2
+                        break
+                    elif csum == midpoint+1 and index == 0:
+                        data['delay_median'] = entry[0]
+                        break
+                    elif csum == midpoint+1 and index > 0:
+                        data['delay_median'] = entry[0] + ordered_th[index-1][0] / 2
+                        break
+            else:  # odd number of samples
+                for index, entry in enumerate(ordered_th):
+                    csum += entry[1]
+                    if csum >= midpoint+1:
+                        data['delay_median'] = entry[0]
+                        break
             aLotOfData.append(copy.copy(data))
         q.task_done()
         if len(aLotOfData) > 500:
