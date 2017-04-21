@@ -71,7 +71,8 @@ def eventCreator():
 
         dati = datetime.utcfromtimestamp(m['timestamp'])
         data['_index'] = "network_weather-test-" + str(dati.year) + "." + str(dati.month) + "." + str(dati.day)
-        data['toolkit_summary'] = copy.copy(m)
+        data.update(m)
+        data.pop('interfaces', None)
         #print(data)
         aLotOfData.append(copy.copy(data))
         q.task_done()
