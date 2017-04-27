@@ -67,16 +67,17 @@ def eventCreator():
         d = q.get()
         m = json.loads(d)
         #print m
-        data = {'_type': 'meta', 'timestamp': int(m['timestamp']) * 1000}
+        data = {'_type': 'meta', 'timestamp': int(float(m['timestamp']) * 1000)}
 
-        dati = datetime.utcfromtimestamp(m['timestamp'])
+        dati = datetime.utcfromtimestamp(float(m['timestamp']))
         data['_index'] = "network_weather-test-" + str(dati.year) + "." + str(dati.month) + "." + str(dati.day)
         data.update(m)
         data.pop('interfaces', None)
         if 'location' in data.keys():
             lat = data['location'].get('latitude', 0)
             lgt = data['location'].get('longitude', 0)
-            data['geolocation'] = "%s,%s" % (lat, lgt)
+            if lat and lgt:
+                data['geolocation'] = "%s,%s" % (lat, lgt)
         #print(data)
         aLotOfData.append(copy.copy(data))
         q.task_done()
