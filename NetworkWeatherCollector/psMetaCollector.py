@@ -76,7 +76,8 @@ def eventCreator():
         if 'location' in data.keys():
             lat = data['location'].get('latitude', 0)
             lgt = data['location'].get('longitude', 0)
-            data['geolocation'] = "%s,%s" % (lat, lgt)
+            if lat and lgt:
+                data['geolocation'] = "%s,%s" % (lat, lgt)
         #print(data)
         aLotOfData.append(copy.copy(data))
         q.task_done()
