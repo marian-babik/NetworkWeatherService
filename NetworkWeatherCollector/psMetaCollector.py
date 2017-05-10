@@ -36,16 +36,16 @@ class MyListener(object):
         connectToAMQ()
 
 
-def deep_retype(source):
-    for key, value in source.iteritems():
-        if isinstance(value, Mapping) and value:
-            deep_retype(value)
-        elif isinstance(value, (list, tuple)) and not isinstance(value, basestring):
-            for item in value:
+def deep_clean(source):
+    for key in source.keys():
+        if isinstance(source[key], Mapping) and source[key]:
+            deep_clean(source[key])
+        elif isinstance(source[key], (list, tuple)) and not isinstance(source[key], basestring):
+            for item in source[key]:
                 if isinstance(item, Mapping) and item:
-                    deep_retype(item)
-        elif isinstance(value, (int, long)):
-            source[key] = str(value)
+                    deep_clean(item)
+        elif not source[key] or source[key] in ('unknown',):
+            del source[key]
 
 
 def connectToAMQ():
@@ -85,7 +85,7 @@ def eventCreator():
         data['_index'] = "network_weather-test-" + str(dati.year) + "." + str(dati.month) + "." + str(dati.day)
         data.update(m)
         data.pop('interfaces', None)
-        deep_retype(data)
+        deep_clean(data)
         data['timestamp'] = int(float(m['timestamp']) * 1000)
         if 'location' in data.keys():
             lat = data['location'].get('latitude', 0)
@@ -93,6 +93,7 @@ def eventCreator():
             if lat and lgt:
                 data['geolocation'] = "%s,%s" % (lat, lgt)
         #print(data)
+
         aLotOfData.append(copy.copy(data))
         q.task_done()
 
