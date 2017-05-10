@@ -7,6 +7,7 @@ import threading
 import copy
 import json
 from datetime import datetime
+from collections import Mapping
 
 import stomp
 import siteMapping
@@ -33,6 +34,18 @@ class MyListener(object):
     def on_disconnected(self):
         print ('AMQ - no connection. Needs a reconnect!')
         connectToAMQ()
+
+
+def deep_retype(source):
+    for key, value in source.iteritems():
+        if isinstance(value, Mapping) and value:
+            deep_retype(value)
+        elif isinstance(value, (list, tuple)) and not isinstance(value, basestring):
+            for item in value:
+                if isinstance(item, Mapping) and item:
+                    deep_retype(item)
+        elif isinstance(value, (int, long)):
+            source[key] = str(value)
 
 
 def connectToAMQ():
@@ -72,6 +85,7 @@ def eventCreator():
         data['_index'] = "network_weather-test-" + str(dati.year) + "." + str(dati.month) + "." + str(dati.day)
         data.update(m)
         data.pop('interfaces', None)
+        deep_retype(data)
         data['timestamp'] = int(float(m['timestamp']) * 1000)
         if 'location' in data.keys():
             lat = data['location'].get('latitude', 0)
