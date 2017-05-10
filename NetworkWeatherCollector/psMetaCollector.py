@@ -78,6 +78,10 @@ def eventCreator():
             lgt = data['location'].get('longitude', 0)
             if lat and lgt:
                 data['geolocation'] = "%s,%s" % (lat, lgt)
+        if 'external_address' in data.keys():
+	    ea=data['external_address]
+	    if 'speed' in ea.keys():
+		if isinstance(ea['speed'], str): del ea['speed']
         #print(data)
         aLotOfData.append(copy.copy(data))
         q.task_done()
