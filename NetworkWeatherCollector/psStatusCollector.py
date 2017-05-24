@@ -83,7 +83,7 @@ def eventCreator():
         for k in m['perf_metrics'].keys():
             data[prefix+"_"+k] = m['perf_metrics'][k]
         dati = datetime.utcfromtimestamp(float(m['timestamp']))
-        data['_index'] = "network_weather-test-" + str(dati.year) + "." + str(dati.month) + "." + str(dati.day)
+        data['_index'] = "network_weather-" + str(dati.year) + "." + str(dati.month) + "." + str(dati.day)
         data['timestamp'] = int(float(m['timestamp']) * 1000)
         #print(data)
         aLotOfData.append(copy.copy(data))
