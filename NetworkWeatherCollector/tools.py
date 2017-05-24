@@ -40,8 +40,8 @@ def bulk_index(data, es_conn=None, thread_name=''):
         print('TransportError ', error)
     except helpers.BulkIndexError as error:
         print(error[0])
-      # for i in error[1]:
-      # print(i)
+        for i in error[1]:
+            print(i)
     except:
         print('Something seriously wrong happened.')
     return success
