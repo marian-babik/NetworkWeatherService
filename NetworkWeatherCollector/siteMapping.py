@@ -76,7 +76,7 @@ def reload():
     # loading meshes ===================================
     
     try:
-        r=requests.get('http://myosg.grid.iu.edu/psmesh/all')
+        r=requests.get('http://meshconfig.grid.iu.edu/pub/config/')
         res = r.json()
         for r in res:
             meshes.append(r['include'][0])
