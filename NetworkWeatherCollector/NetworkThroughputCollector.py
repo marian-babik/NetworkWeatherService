@@ -78,6 +78,8 @@ def eventCreator():
         data['MA'] = m['meta']['measurement_agent']
         data['src'] = source
         data['dest'] = destination
+        data['src_host'] = m['meta']['input_source']
+        data['dest_host'] = m['meta']['input_destination']
         data['ipv6'] = False
         if ':' in source or ':' in destination:
             data['ipv6'] = True
