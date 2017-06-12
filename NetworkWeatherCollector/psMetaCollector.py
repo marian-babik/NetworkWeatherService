@@ -72,32 +72,44 @@ def connectToAMQ():
         conn.subscribe(destination=topic, ack='auto', id="1", headers={})
         conns.append(conn)
 
+
 def convert_to_float(d, tags):
-	for t in tags:
-		if t not in d: continue
-		v = d[t]
-		if not v: continue
-		if isinstance(v,float): continue
-		d[t]=float(v)
+    for t in tags:
+        if t not in d:
+            continue
+        v = d[t]
+        if not v:
+            continue
+        if isinstance(v, float):
+            continue
+        d[t] = float(v)
+
 
 def convert_to_int(d, tags):
     for t in tags:
-        if t not in d: continue
+        if t not in d:
+            continue
         v = d[t]
-        if not v: continue
-        if isinstance(v,int): continue
+        if not v:
+            continue
+        if isinstance(v, int):
+            continue
         if v.isdigit():
-            d[t]=int(v)
+            d[t] = int(v)
         else:
-            d[t]=None
+            d[t] = None
+
 
 def clean(data):
-    toDel=[]
+    toDel = []
     for tag in data.keys():
-        if data[tag]==None or data[tag]=='unknown': toDel.append(tag)
-        if type(data[tag]) is dict: clean(data[tag])
+        if data[tag] == None or data[tag] == 'unknown':
+            toDel.append(tag)
+        if type(data[tag]) is dict:
+            clean(data[tag])
     for tag in toDel:
         del data[tag]
+
 
 def eventCreator():
     aLotOfData = []
@@ -113,23 +125,25 @@ def eventCreator():
         data.pop('interfaces', None)
         deep_clean(data)
         data['timestamp'] = int(float(m['timestamp']) * 1000)
-       
+        data['host'] = data.get('external_address', {}).get('dns_name')
+
         if "services" in data:
-            sers =copy.deepcopy(data["services"])
-            data["services"]={}
+            sers = copy.deepcopy(data["services"])
+            data["services"] = {}
             for s in sers:
                 if "name" in s:
-                    service_name=s["name"]
+                    service_name = s["name"]
                     del s["name"]
-                    tps={}
+                    tps = {}
                     if "testing_ports" in s:
                         for tp in s["testing_ports"]:
-                            if 'type' not in tp: continue
-                            tps[tp['type']]={"min_port":tp["min_port"],"max_port":tp["max_port"]}
-                        s['testing_ports']=tps
-                    data["services"][service_name]=s
+                            if 'type' not in tp:
+                                continue
+                            tps[tp['type']] = {"min_port": tp["min_port"], "max_port": tp["max_port"]}
+                        s['testing_ports'] = tps
+                    data["services"][service_name] = s
                 else:
-                    continue        
+                    continue
 
         clean(data)
 
@@ -141,16 +155,16 @@ def eventCreator():
             del data['location']
 
         if 'ntp' in data.keys():
-            n=data['ntp']
-            convert_to_float(n,['delay','dispersion','offset'])       
-            convert_to_int(n,['synchronized','stratum','reach','polling_interval'])
+            n = data['ntp']
+            convert_to_float(n, ['delay', 'dispersion', 'offset'])
+            convert_to_int(n, ['synchronized', 'stratum', 'reach', 'polling_interval'])
 
         if 'external_address' in data.keys():
             ea = data['external_address']
             if 'counters' in ea.keys():
                 convert_to_int(ea['counters'], ea['counters'].keys())
-        
-        convert_to_int(data, ['cpu_cores','cpus'])
+
+        convert_to_int(data, ['cpu_cores', 'cpus'])
         convert_to_float(data, ['cpu_speed'])
             
         #print('-----------')
