@@ -7,7 +7,6 @@ import threading
 import copy
 import json
 from datetime import datetime
-from collections import Mapping
 
 import stomp
 import siteMapping
@@ -34,18 +33,6 @@ class MyListener(object):
     def on_disconnected(self):
         print ('AMQ - no connection. Needs a reconnect!')
         connectToAMQ()
-
-
-def deep_clean(source):
-    for key in source.keys():
-        if isinstance(source[key], Mapping) and source[key]:
-            deep_clean(source[key])
-        elif isinstance(source[key], (list, tuple)) and not isinstance(source[key], basestring):
-            for item in source[key]:
-                if isinstance(item, Mapping) and item:
-                    deep_clean(item)
-        elif not source[key] or source[key] in ('unknown',):
-            del source[key]
 
 
 def connectToAMQ():
@@ -75,25 +62,19 @@ def connectToAMQ():
 
 def convert_to_float(d, tags):
     for t in tags:
-        if t not in d:
-            continue
+        if t not in d: continue
         v = d[t]
-        if not v:
-            continue
-        if isinstance(v, float):
-            continue
+        if not v: continue
+        if isinstance(v, float): continue
         d[t] = float(v)
 
 
 def convert_to_int(d, tags):
     for t in tags:
-        if t not in d:
-            continue
+        if t not in d: continue
         v = d[t]
-        if not v:
-            continue
-        if isinstance(v, int):
-            continue
+        if not v: continue
+        if isinstance(v, int): continue
         if v.isdigit():
             d[t] = int(v)
         else:
@@ -103,10 +84,8 @@ def convert_to_int(d, tags):
 def clean(data):
     toDel = []
     for tag in data.keys():
-        if data[tag] == None or data[tag] == 'unknown':
-            toDel.append(tag)
-        if type(data[tag]) is dict:
-            clean(data[tag])
+        if data[tag] == None or data[tag] == 'unknown': toDel.append(tag)
+        if type(data[tag]) is dict: clean(data[tag])
     for tag in toDel:
         del data[tag]
 
@@ -123,7 +102,6 @@ def eventCreator():
         data['_index'] = "network_weather-" + str(dati.year) + "." + str(dati.month) + "." + str(dati.day)
         data.update(m)
         data.pop('interfaces', None)
-        deep_clean(data)
         data['timestamp'] = int(float(m['timestamp']) * 1000)
         data['host'] = data.get('external_address', {}).get('dns_name')
 
@@ -137,8 +115,7 @@ def eventCreator():
                     tps = {}
                     if "testing_ports" in s:
                         for tp in s["testing_ports"]:
-                            if 'type' not in tp:
-                                continue
+                            if 'type' not in tp: continue
                             tps[tp['type']] = {"min_port": tp["min_port"], "max_port": tp["max_port"]}
                         s['testing_ports'] = tps
                     data["services"][service_name] = s
@@ -166,9 +143,9 @@ def eventCreator():
 
         convert_to_int(data, ['cpu_cores', 'cpus'])
         convert_to_float(data, ['cpu_speed'])
-            
-        #print('-----------')
-        #print(data)
+
+        # print('-----------')
+        # print(data)
 
         aLotOfData.append(copy.copy(data))
         q.task_done()
@@ -179,6 +156,7 @@ def eventCreator():
                 aLotOfData = []
             else:
                 print(aLotOfData)
+
 
 AMQ_PASS = tools.get_pass()
 
