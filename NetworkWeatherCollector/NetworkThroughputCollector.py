@@ -78,6 +78,9 @@ def eventCreator():
         data['MA'] = m['meta']['measurement_agent']
         data['src'] = source
         data['dest'] = destination
+        data['ipv6'] = False
+        if ':' in source or ':' in destination:
+            data['ipv6'] = True
         so = siteMapping.getPS(source)
         de = siteMapping.getPS(destination)
         if so != None:
