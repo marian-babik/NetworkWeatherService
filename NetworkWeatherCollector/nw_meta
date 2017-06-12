@@ -8,7 +8,6 @@
 # Source init functions
 . /etc/rc.d/init.d/functions
  
- 
 prog="psMetaCollector.py"
 prefix="/afs/cern.ch/user/i/ivukotic/NetworkWeatherService/NetworkWeatherCollector"
 exec_prefix="${prefix}"
